@@ -50,6 +50,15 @@ export const definitions_api = async (
     return;
   }
 
+  if (req.method === "GET" && req.url === "/definitions") {
+  const definitions = await db_definition.getAll();
+
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(definitions));
+  return;
+}
+
   if (req.method === "GET" && req.url?.startsWith("/definitions/")) {
     const id = req.url.split("/")[2];
 
@@ -71,6 +80,8 @@ export const definitions_api = async (
     res.end(JSON.stringify(definition));
     return;
   }
+
+  
 
   if (req.method === "DELETE" && req.url?.startsWith("/definitions/")) {
     const id = req.url.split("/")[2];

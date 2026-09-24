@@ -135,6 +135,27 @@ export const db_definition = {
     return await getDefinition(id);
   },
 
+  getAll: async (): Promise<Definition[]> => {
+  const result = await client.query(
+    `
+      SELECT id, name, value_type
+      FROM definitions
+      ORDER BY name
+    `,
+  );
+
+  return Promise.all(
+    result.rows.map((row) =>
+      getDefinition(row.id as DefinitionId),
+    ),
+  ).then((definitions) =>
+    definitions.filter(
+      (definition): definition is Definition =>
+        definition !== null,
+    ),
+  );
+},
+
   delete: async (id: DefinitionId) => {
     const parents = await getParents(id);
     const definitionIds = [id, ...parents];
