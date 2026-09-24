@@ -1,0 +1,21 @@
+{
+  "name": "asset_db",
+  "version": "1.0.0",
+  "main": "index.js",
+"type":"module",
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}
