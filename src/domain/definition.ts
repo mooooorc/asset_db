@@ -15,3 +15,13 @@ export type Definition =
       name: string;
       definitions: DefinitionId[];
     };
+
+export type NewDefinition =
+  | {
+      name: string;
+      valueType: DefinitionValueType;
+    }
+  | {
+      name: string;
+      definitions: DefinitionId[];
+    };

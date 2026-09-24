@@ -1,7 +1,8 @@
-import type { Asset, AssetId } from "../domain/asset.js";
+import type { Asset, AssetId, NewAsset } from "../domain/asset.js";
 import { client } from "./client.js";
 import type { Definition, DefinitionId } from "../domain/definition.js";
 import { db_definition } from "./db_definition.js";
+import { randomUUID } from "node:crypto";
 
 type Column = {
   name: string;
@@ -53,39 +54,51 @@ export const getColumns = async (definition: Definition): Promise<Column[]> => {
 };
 
 export const db_asset = {
-  save: async (asset: Asset) => {
+  save: async (asset: NewAsset): Promise<Asset> => {
+  const newAsset = {
+    ...asset,
+    id: randomUUID() as AssetId,
+  };
+
+  await client.query(
+    `
+      INSERT INTO assets (id, name)
+      VALUES ($1, $2)
+    `,
+    [newAsset.id, newAsset.name],
+  );
+
+  for (const definitionId of newAsset.definitions) {
     await client.query(
       `
-        INSERT INTO assets (id, name)
+        INSERT INTO asset_definitions (asset_id, definition_id)
         VALUES ($1, $2)
       `,
-      [asset.id, asset.name],
+      [newAsset.id, definitionId],
     );
+  }
 
-    for (const definitionId of asset.definitions) {
-      await client.query(
-        `
-          INSERT INTO asset_definitions (asset_id, definition_id)
-          VALUES ($1, $2)
-        `,
-        [asset.id, definitionId],
-      );
-    }
+  const definitions = await Promise.all(
+    newAsset.definitions.map((definitionId) =>
+      db_definition.get(definitionId),
+    ),
+  );
 
-    const definitions = await Promise.all(
-      asset.definitions.map((definitionId) => db_definition.get(definitionId)),
-    );
+  const columns = (
+    await Promise.all(
+      definitions
+        .filter(
+          (definition): definition is Definition =>
+            definition !== null,
+        )
+        .map(getColumns),
+    )
+  ).flat();
 
-    const columns = (
-      await Promise.all(
-        definitions
-          .filter((definition): definition is Definition => definition !== null)
-          .map(getColumns),
-      )
-    ).flat();
+  await createAssetTable(newAsset, columns);
 
-    await createAssetTable(asset, columns);
-  },
+  return newAsset;
+},
 
   get: async (id: AssetId) => {
     const result = await client.query(

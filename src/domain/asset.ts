@@ -10,3 +10,8 @@ export type Asset = {
   name: string;
   definitions: DefinitionId[];
 };
+
+export type NewAsset = {
+  name: string;
+  definitions: DefinitionId[];
+}

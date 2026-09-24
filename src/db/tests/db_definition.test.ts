@@ -1,87 +1,82 @@
 import { disconnect, connect, client } from "../client.js";
 import { db_definition } from "../db_definition.js";
-import type { Definition, DefinitionId } from "../../domain/definition.js";
-import type { Asset, AssetId } from "../../domain/asset.js";
 import { db_asset } from "../db_asset.js";
 
 
 await connect();
 
 try {
-  const latitude: Definition = {
-    id: "latitude" as DefinitionId,
+  const latitude = await db_definition.save({
     name: "latitude",
     valueType: "number",
-  };
+  });
 
-  const longitude: Definition = {
-    id: "longitude" as DefinitionId,
+  const longitude = await db_definition.save({
     name: "longitude",
     valueType: "number",
-  };
+  });
 
-  const coordinates: Definition = {
-    id: "coordinates" as DefinitionId,
+  const coordinates = await db_definition.save({
     name: "coordinates",
     definitions: [
-      "latitude" as DefinitionId,
-      "longitude" as DefinitionId,
+      latitude.id,
+      longitude.id,
     ],
-  };
+  });
 
-  const location: Definition = {
-    id: "location" as DefinitionId,
+  const location = await db_definition.save({
     name: "location",
     definitions: [
-      "coordinates" as DefinitionId,
+      coordinates.id,
     ],
-  };
+  });
 
-  await db_definition.save(latitude);
-  await db_definition.save(longitude);
-  await db_definition.save(coordinates);
-  await db_definition.save(location);
+  console.log(latitude);
+  console.log(longitude);
+  console.log(coordinates);
+  console.log(location);
 
-  const asset: Asset = {
-    id: "valve" as AssetId,
+  const asset = await db_asset.save({
     name: "valve",
     definitions: [
-      "location" as DefinitionId,
+      location.id,
     ],
-  };
+  });
 
-  await db_asset.save(asset);
+  console.log(asset);
 
   console.log("ANTES:");
 
-  const before = await client.query(`
+  const before = await client.query(
+  `
     SELECT column_name
     FROM information_schema.columns
-    WHERE table_name = 'valve'
+    WHERE table_name = $1
     ORDER BY ordinal_position
-  `);
+  `,
+  [asset.id],
+);
 
   console.log(before.rows);
 
-  await db_definition.delete(
-    "coordinates" as DefinitionId,
-  );
+  await db_definition.delete(coordinates.id);
 
   console.log("DESPUÉS:");
 
-  const after = await client.query(`
+  const after = await client.query(
+  `
     SELECT column_name
     FROM information_schema.columns
-    WHERE table_name = 'valve'
+    WHERE table_name = $1
     ORDER BY ordinal_position
-  `);
+  `,
+  [asset.id],
+);
 
   console.log(after.rows);
 
   console.log(
-    await db_definition.get(
-      "coordinates" as DefinitionId,
-    ),
+    await db_definition.get(coordinates.id),
   );
 } finally {
   await disconnect();

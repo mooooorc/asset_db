@@ -1,4 +1,9 @@
-import type { Definition, DefinitionId } from "../domain/definition.js";
+import { randomUUID } from "node:crypto";
+import type {
+  Definition,
+  DefinitionId,
+  NewDefinition,
+} from "../domain/definition.js";
 import { client } from "./client.js";
 
 const insertDefinition = async (definition: Definition) => {
@@ -115,8 +120,15 @@ const getLeafDefinitions = async (
 };
 
 export const db_definition = {
-  save: async (def: Definition) => {
-    await insertDefinition(def);
+  save: async (def: NewDefinition): Promise<Definition> => {
+    const definition = {
+      ...def,
+      id: randomUUID() as DefinitionId,
+    };
+
+    await insertDefinition(definition);
+
+    return definition;
   },
 
   get: async (id: DefinitionId): Promise<Definition | null> => {
