@@ -1,0 +1,3 @@
+CREATE TABLE assets (
+    id TEXT PRIMARY KEY
+);

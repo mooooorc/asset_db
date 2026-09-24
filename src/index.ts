@@ -1,8 +1,6 @@
-import { db_definition } from "./db/db_definition.js";
-import type { DefinitionId } from "./definition.js";
+import { db_asset } from "./db/db_asset.js";
+import type { AssetId } from "./asset.js";
 
-const definition = await db_definition.get(
-  "coordinates" as DefinitionId,
-);
+const pipe = await db_asset.get("pipe" as AssetId);
 
-console.log(definition);
+console.log(pipe);
