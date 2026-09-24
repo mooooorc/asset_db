@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  padding: 32px;
+  font-family: sans-serif;
+}
+
+.table {
+  display: grid;
+  border: 1px solid #ddd;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr auto;
+  padding: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.header {
+  font-weight: bold;
+  border-top: 0;
+}
