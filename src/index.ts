@@ -3,15 +3,10 @@ import type { AssetId } from "./domain/asset.js";
 import type { InstanceId } from "./domain/instance.js";
 ;
 
-await db_instance.save({
-  asset_db_id: crypto.randomUUID() as InstanceId,
-  type: "valve" as AssetId,
-  properties: {
-  
-    name: "Valve 001",
-    latitude: 39.47,
-    longitude: -0.38,
-  },
-});
 
-console.log("Instance saved");
+const instance = await db_instance.get(
+  "valve" as AssetId,
+  "920ed3ab-b683-4a21-941a-de665b326e3e" as InstanceId,
+);
+
+console.log(instance);
