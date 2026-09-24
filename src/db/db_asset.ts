@@ -8,7 +8,7 @@ type Column = {
   type: string;
 };
 
- const createAssetTable = async (asset: Asset, columns: Column[]) => {
+const createAssetTable = async (asset: Asset, columns: Column[]) => {
   const columnDefinitions = columns
     .map((column) => `"${column.name}" ${column.type}`)
     .join(",\n");
@@ -20,9 +20,9 @@ type Column = {
       }
     )
   `);
-}
+};
 
-export const getColumns = (definition: Definition): Column[] => {
+export const getColumns = async (definition: Definition): Promise<Column[]> => {
   if ("valueType" in definition) {
     return [
       {
@@ -37,80 +37,87 @@ export const getColumns = (definition: Definition): Column[] => {
     ];
   }
 
-  return definition.definitions.flatMap(getColumns);
-}
+  const definitions = await Promise.all(
+    definition.definitions.map((definitionId) =>
+      db_definition.get(definitionId),
+    ),
+  );
+
+  const columns = await Promise.all(
+    definitions
+      .filter((definition): definition is Definition => definition !== null)
+      .map(getColumns),
+  );
+
+  return columns.flat();
+};
 
 export const db_asset = {
   save: async (asset: Asset) => {
-    await client.connect();
+    await client.query(
+      `
+      INSERT INTO assets (id)
+      VALUES ($1)
+    `,
+      [asset.id],
+    );
 
-    try {
+    for (const definitionId of asset.definitions) {
       await client.query(
         `
-        INSERT INTO assets (id)
-        VALUES ($1)
+        INSERT INTO asset_definitions (asset_id, definition_id)
+        VALUES ($1, $2)
       `,
-        [asset.id],
+        [asset.id, definitionId],
       );
-
-      for (const definitionId of asset.definitions) {
-        await client.query(
-          `
-          INSERT INTO asset_definitions (asset_id, definition_id)
-          VALUES ($1, $2)
-        `,
-          [asset.id, definitionId],
-        );
-      }
-
-      const definitions = await Promise.all(
-        asset.definitions.map((definitionId) =>
-          db_definition.get(definitionId),
-        ),
-      );
-
-      const columns = definitions
-        .filter((definition): definition is Definition => definition !== null)
-        .flatMap(getColumns);
-
-      await createAssetTable(asset, columns);
-    } finally {
-      await client.end();
     }
+
+    const definitions = await Promise.all(
+      asset.definitions.map((definitionId) =>
+        db_definition.get(definitionId),
+      ),
+    );
+
+    const columns = (
+      await Promise.all(
+        definitions
+          .filter(
+            (definition): definition is Definition => definition !== null,
+          )
+          .map(getColumns),
+      )
+    ).flat();
+
+    await createAssetTable(asset, columns);
   },
 
   get: async (id: AssetId) => {
-    await client.connect();
+    const result = await client.query(
+      `
+        SELECT id
+        FROM assets
+        WHERE id = $1
+      `,
+      [id],
+    );
 
-    try {
-      const result = await client.query(
-        `
-          SELECT id
-          FROM assets
-          WHERE id = $1
-        `,
-        [id],
-      );
+    const asset = result.rows[0];
 
-      const asset = result.rows[0];
+    if (!asset) return null;
 
-      if (!asset) return null;
+    const definitions = await client.query(
+      `
+        SELECT definition_id
+        FROM asset_definitions
+        WHERE asset_id = $1
+      `,
+      [id],
+    );
 
-      const definitions = await client.query(
-        `
-          SELECT definition_id
-          FROM asset_definitions
-          WHERE asset_id = $1
-        `,
-        [id],
-      );
-
-      return {
-        id: asset.id,
-        definitions: definitions.rows.map((row) => row.definition_id),
-      };
-    } finally {
-      await client.end();
-    }
+    return {
+      id: asset.id,
+      definitions: definitions.rows.map((row) => row.definition_id),
+    };
   },
 };
+

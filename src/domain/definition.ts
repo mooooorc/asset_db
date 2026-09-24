@@ -11,5 +11,5 @@ export type Definition =
     }
   | {
       id: DefinitionId;
-      definitions: Definition[];
+      definitions: DefinitionId[];
     };

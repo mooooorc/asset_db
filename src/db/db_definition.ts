@@ -1,43 +1,32 @@
-import pg from "pg";
 import type { Definition, DefinitionId } from "../domain/definition.js";
 import { client } from "./client.js";
 
-
-const insertDefinition = async (
-  definition: Definition,
-  parentId: DefinitionId | null,
-) => {
+const insertDefinition = async (definition: Definition) => {
   await client.query(
     `
-      INSERT INTO definitions (id, value_type, parent_id)
-      VALUES ($1, $2, $3)
+      INSERT INTO definitions (id, value_type)
+      VALUES ($1, $2)
     `,
-    [
-      definition.id,
-      "valueType" in definition ? definition.valueType : null,
-      parentId,
-    ],
+    [definition.id, "valueType" in definition ? definition.valueType : null],
   );
 
   if ("definitions" in definition) {
-    for (const child of definition.definitions) {
-      await insertDefinition(child, definition.id);
+    for (const childId of definition.definitions) {
+      await client.query(
+        `
+          INSERT INTO definition_definitions (
+            definition_id,
+            child_definition_id
+          )
+          VALUES ($1, $2)
+        `,
+        [definition.id, childId],
+      );
     }
   }
 };
 
-export const db_definition = {
-  save: async (def: Definition) => {
-    await client.connect();
-
-    try {
-      await insertDefinition(def, null);
-    } finally {
-      await client.end();
-    }
-  },
-
-  get: async (id: DefinitionId): Promise<Definition | null> => {
+async function getDefinition(id: DefinitionId): Promise<Definition | null> {
   const result = await client.query(
     `
       SELECT id, value_type
@@ -53,20 +42,19 @@ export const db_definition = {
 
   const children = await client.query(
     `
-      SELECT id, value_type
-      FROM definitions
-      WHERE parent_id = $1
-    `,
+    SELECT child_definition_id
+    FROM definition_definitions
+    WHERE definition_id = $1
+  `,
     [id],
   );
 
   if (children.rows.length > 0) {
     return {
       id: definition.id,
-      definitions: children.rows.map((child) => ({
-        id: child.id,
-        valueType: child.value_type,
-      })),
+      definitions: children.rows.map(
+        (child) => child.child_definition_id as DefinitionId,
+      ),
     };
   }
 
@@ -74,5 +62,14 @@ export const db_definition = {
     id: definition.id,
     valueType: definition.value_type,
   };
-},
+}
+
+export const db_definition = {
+  save: async (def: Definition) => {
+    await insertDefinition(def);
+  },
+
+  get: async (id: DefinitionId): Promise<Definition | null> => {
+    return await getDefinition(id);
+  },
 };

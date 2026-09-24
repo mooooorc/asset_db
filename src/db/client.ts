@@ -9,3 +9,6 @@ export const client = new Client({
   password: "assetdb",
   database: "assetdb",
 });
+
+export const connect = () => client.connect();
+export const disconnect = () => client.end();

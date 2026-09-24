@@ -20,27 +20,24 @@ function createInsertQuery(instance: Instance) {
     `,
     values: [
       instance.asset_db_id,
-      ...properties.map((property) => instance.properties[property]),
+      ...properties.map(
+        (property) => instance.properties[property],
+      ),
     ],
   };
 }
 
 export const db_instance = {
   save: async (instance: Instance) => {
-    await client.connect();
+    const { query, values } = createInsertQuery(instance);
 
-    try {
-      const { query, values } = createInsertQuery(instance);
-
-      await client.query(query, values);
-    } finally {
-      await client.end();
-    }
+    await client.query(query, values);
   },
-  get: async (type: AssetId, assetDbId: InstanceId) => {
-  await client.connect();
 
-  try {
+  get: async (
+    type: AssetId,
+    assetDbId: InstanceId,
+  ) => {
     const result = await client.query(
       `
         SELECT *
@@ -61,8 +58,5 @@ export const db_instance = {
       type,
       properties,
     };
-  } finally {
-    await client.end();
-  }
-},
+  },
 };
