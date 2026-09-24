@@ -59,4 +59,17 @@ export const db_instance = {
       properties,
     };
   },
+
+  delete: async (
+    type: AssetId,
+    assetDbId: InstanceId,
+  ) => {
+    await client.query(
+      `
+        DELETE FROM "${type}"
+        WHERE "asset_db_ID" = $1
+      `,
+      [assetDbId],
+    );
+  },
 };

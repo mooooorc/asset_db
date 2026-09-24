@@ -80,6 +80,18 @@ try {
       instance.asset_db_id,
     ),
   );
+
+  await db_instance.delete(
+  "valve" as AssetId,
+  instance.asset_db_id,
+);
+
+console.log(
+  await db_instance.get(
+    "valve" as AssetId,
+    instance.asset_db_id,
+  ),
+);
 } finally {
   await disconnect();
 }
