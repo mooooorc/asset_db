@@ -1,17 +1,8 @@
-import pg from "pg";
+import { db_definition } from "./db/db_definition.js";
+import type { DefinitionId } from "./definition.js";
 
-const { Client } = pg;
+const definition = await db_definition.get(
+  "coordinates" as DefinitionId,
+);
 
-const client = new Client({
-  host: "localhost",
-  port: 5434,
-  user: "assetdb",
-  password: "assetdb",
-  database: "assetdb",
-});
-
-await client.connect();
-
-console.log("Connected to PostgreSQL");
-
-await client.end();
+console.log(definition);
