@@ -64,7 +64,8 @@ try {
   );
 
   const instance: Instance = {
-    asset_db_id: "550e8400-e29b-41d4-a716-446655440000" as InstanceId,
+    asset_db_id:
+      "550e8400-e29b-41d4-a716-446655440000" as InstanceId,
     type: "valve" as AssetId,
     properties: {
       latitude: 39.47,
@@ -82,16 +83,22 @@ try {
   );
 
   await db_instance.delete(
-  "valve" as AssetId,
-  instance.asset_db_id,
-);
-
-console.log(
-  await db_instance.get(
     "valve" as AssetId,
     instance.asset_db_id,
-  ),
-);
+  );
+
+  console.log(
+    await db_instance.get(
+      "valve" as AssetId,
+      instance.asset_db_id,
+    ),
+  );
+
+  await db_asset.delete("valve" as AssetId);
+
+  console.log(
+    await db_asset.get("valve" as AssetId),
+  );
 } finally {
   await disconnect();
 }

@@ -128,4 +128,26 @@ export const db_asset = {
       ),
     };
   },
+
+  delete: async (id: AssetId) => {
+  await client.query(`
+    DROP TABLE "${id}"
+  `);
+
+  await client.query(
+    `
+      DELETE FROM asset_definitions
+      WHERE asset_id = $1
+    `,
+    [id],
+  );
+
+  await client.query(
+    `
+      DELETE FROM assets
+      WHERE id = $1
+    `,
+    [id],
+  );
+},
 };
