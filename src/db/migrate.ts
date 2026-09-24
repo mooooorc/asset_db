@@ -1,19 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import pg from "pg";
 
-const { Client } = pg;
+import { client, connect, disconnect } from "./client.js";
 
-const client = new Client({
-  host: "localhost",
-  port: 5434,
-  user: "assetdb",
-  password: "assetdb",
-  database: "assetdb",
-});
 
-await client.connect();
-
+await connect()
 await client.query(`
   CREATE TABLE IF NOT EXISTS migrations (
     id TEXT PRIMARY KEY
@@ -64,4 +55,4 @@ for (const file of files) {
 }
 
 
-await client.end();
+await disconnect()

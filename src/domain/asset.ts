@@ -7,5 +7,6 @@ export type AssetId = string & {
 
 export type Asset = {
   id: AssetId;
+  name: string;
   definitions: DefinitionId[];
 };

@@ -4,10 +4,14 @@ import { client } from "./client.js";
 const insertDefinition = async (definition: Definition) => {
   await client.query(
     `
-      INSERT INTO definitions (id, value_type)
-      VALUES ($1, $2)
+      INSERT INTO definitions (id, name, value_type)
+      VALUES ($1, $2, $3)
     `,
-    [definition.id, "valueType" in definition ? definition.valueType : null],
+    [
+      definition.id,
+      definition.name,
+      "valueType" in definition ? definition.valueType : null,
+    ],
   );
 
   if ("definitions" in definition) {
@@ -26,10 +30,12 @@ const insertDefinition = async (definition: Definition) => {
   }
 };
 
-async function getDefinition(id: DefinitionId): Promise<Definition | null> {
+async function getDefinition(
+  id: DefinitionId,
+): Promise<Definition | null> {
   const result = await client.query(
     `
-      SELECT id, value_type
+      SELECT id, name, value_type
       FROM definitions
       WHERE id = $1
     `,
@@ -42,16 +48,17 @@ async function getDefinition(id: DefinitionId): Promise<Definition | null> {
 
   const children = await client.query(
     `
-    SELECT child_definition_id
-    FROM definition_definitions
-    WHERE definition_id = $1
-  `,
+      SELECT child_definition_id
+      FROM definition_definitions
+      WHERE definition_id = $1
+    `,
     [id],
   );
 
   if (children.rows.length > 0) {
     return {
       id: definition.id,
+      name: definition.name,
       definitions: children.rows.map(
         (child) => child.child_definition_id as DefinitionId,
       ),
@@ -60,6 +67,7 @@ async function getDefinition(id: DefinitionId): Promise<Definition | null> {
 
   return {
     id: definition.id,
+    name: definition.name,
     valueType: definition.value_type,
   };
 }

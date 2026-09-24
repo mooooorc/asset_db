@@ -22,7 +22,9 @@ const createAssetTable = async (asset: Asset, columns: Column[]) => {
   `);
 };
 
-export const getColumns = async (definition: Definition): Promise<Column[]> => {
+export const getColumns = async (
+  definition: Definition,
+): Promise<Column[]> => {
   if ("valueType" in definition) {
     return [
       {
@@ -45,7 +47,10 @@ export const getColumns = async (definition: Definition): Promise<Column[]> => {
 
   const columns = await Promise.all(
     definitions
-      .filter((definition): definition is Definition => definition !== null)
+      .filter(
+        (definition): definition is Definition =>
+          definition !== null,
+      )
       .map(getColumns),
   );
 
@@ -56,18 +61,18 @@ export const db_asset = {
   save: async (asset: Asset) => {
     await client.query(
       `
-      INSERT INTO assets (id)
-      VALUES ($1)
-    `,
-      [asset.id],
+        INSERT INTO assets (id, name)
+        VALUES ($1, $2)
+      `,
+      [asset.id, asset.name],
     );
 
     for (const definitionId of asset.definitions) {
       await client.query(
         `
-        INSERT INTO asset_definitions (asset_id, definition_id)
-        VALUES ($1, $2)
-      `,
+          INSERT INTO asset_definitions (asset_id, definition_id)
+          VALUES ($1, $2)
+        `,
         [asset.id, definitionId],
       );
     }
@@ -82,7 +87,8 @@ export const db_asset = {
       await Promise.all(
         definitions
           .filter(
-            (definition): definition is Definition => definition !== null,
+            (definition): definition is Definition =>
+              definition !== null,
           )
           .map(getColumns),
       )
@@ -94,7 +100,7 @@ export const db_asset = {
   get: async (id: AssetId) => {
     const result = await client.query(
       `
-        SELECT id
+        SELECT id, name
         FROM assets
         WHERE id = $1
       `,
@@ -116,8 +122,10 @@ export const db_asset = {
 
     return {
       id: asset.id,
-      definitions: definitions.rows.map((row) => row.definition_id),
+      name: asset.name,
+      definitions: definitions.rows.map(
+        (row) => row.definition_id,
+      ),
     };
   },
 };
-
