@@ -1,6 +1,6 @@
 import type { Asset, AssetId } from "../domain/asset.js";
 import { client } from "./client.js";
-import type { Definition } from "../domain/definition.js";
+import type { Definition, DefinitionId } from "../domain/definition.js";
 import { db_definition } from "./db_definition.js";
 
 type Column = {
@@ -22,9 +22,7 @@ const createAssetTable = async (asset: Asset, columns: Column[]) => {
   `);
 };
 
-export const getColumns = async (
-  definition: Definition,
-): Promise<Column[]> => {
+export const getColumns = async (definition: Definition): Promise<Column[]> => {
   if ("valueType" in definition) {
     return [
       {
@@ -47,10 +45,7 @@ export const getColumns = async (
 
   const columns = await Promise.all(
     definitions
-      .filter(
-        (definition): definition is Definition =>
-          definition !== null,
-      )
+      .filter((definition): definition is Definition => definition !== null)
       .map(getColumns),
   );
 
@@ -78,18 +73,13 @@ export const db_asset = {
     }
 
     const definitions = await Promise.all(
-      asset.definitions.map((definitionId) =>
-        db_definition.get(definitionId),
-      ),
+      asset.definitions.map((definitionId) => db_definition.get(definitionId)),
     );
 
     const columns = (
       await Promise.all(
         definitions
-          .filter(
-            (definition): definition is Definition =>
-              definition !== null,
-          )
+          .filter((definition): definition is Definition => definition !== null)
           .map(getColumns),
       )
     ).flat();
@@ -123,31 +113,54 @@ export const db_asset = {
     return {
       id: asset.id,
       name: asset.name,
-      definitions: definitions.rows.map(
-        (row) => row.definition_id,
-      ),
+      definitions: definitions.rows.map((row) => row.definition_id),
     };
   },
 
   delete: async (id: AssetId) => {
-  await client.query(`
+    await client.query(`
     DROP TABLE "${id}"
   `);
 
-  await client.query(
-    `
+    await client.query(
+      `
       DELETE FROM asset_definitions
       WHERE asset_id = $1
     `,
-    [id],
-  );
+      [id],
+    );
 
-  await client.query(
-    `
+    await client.query(
+      `
       DELETE FROM assets
       WHERE id = $1
     `,
-    [id],
+      [id],
+    );
+  },
+
+  getByDefinitions: async (definitionIds: DefinitionId[]) => {
+    const result = await client.query(
+      `
+      SELECT DISTINCT asset_id
+      FROM asset_definitions
+      WHERE definition_id = ANY($1)
+    `,
+      [definitionIds],
+    );
+
+    return result.rows.map((row) => row.asset_id as AssetId);
+  },
+
+  removeColumn: async (
+  assetId: AssetId,
+  definitionId: DefinitionId,
+) => {
+  await client.query(
+    `
+      ALTER TABLE "${assetId}"
+      DROP COLUMN "${definitionId}"
+    `,
   );
 },
 };

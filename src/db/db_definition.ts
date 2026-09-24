@@ -30,9 +30,7 @@ const insertDefinition = async (definition: Definition) => {
   }
 };
 
-async function getDefinition(
-  id: DefinitionId,
-): Promise<Definition | null> {
+async function getDefinition(id: DefinitionId): Promise<Definition | null> {
   const result = await client.query(
     `
       SELECT id, name, value_type
@@ -72,6 +70,50 @@ async function getDefinition(
   };
 }
 
+const getParents = async (id: DefinitionId): Promise<DefinitionId[]> => {
+  const result = await client.query(
+    `
+      WITH RECURSIVE parents AS (
+        SELECT definition_id
+        FROM definition_definitions
+        WHERE child_definition_id = $1
+
+        UNION
+
+        SELECT dd.definition_id
+        FROM definition_definitions dd
+        INNER JOIN parents p
+          ON dd.child_definition_id = p.definition_id
+      )
+      SELECT definition_id
+      FROM parents
+    `,
+    [id],
+  );
+
+  return result.rows.map((row) => row.definition_id as DefinitionId);
+};
+
+const getLeafDefinitions = async (
+  id: DefinitionId,
+): Promise<DefinitionId[]> => {
+  const definition = await getDefinition(id);
+
+  if (!definition) {
+    return [];
+  }
+
+  if ("valueType" in definition) {
+    return [definition.id];
+  }
+
+  const children = await Promise.all(
+    definition.definitions.map((childId) => getLeafDefinitions(childId)),
+  );
+
+  return children.flat();
+};
+
 export const db_definition = {
   save: async (def: Definition) => {
     await insertDefinition(def);
@@ -79,5 +121,47 @@ export const db_definition = {
 
   get: async (id: DefinitionId): Promise<Definition | null> => {
     return await getDefinition(id);
+  },
+
+  delete: async (id: DefinitionId) => {
+    const parents = await getParents(id);
+    const definitionIds = [id, ...parents];
+    const leafDefinitions = await getLeafDefinitions(id);
+
+    const assets = await client.query(
+      `
+      SELECT DISTINCT asset_id
+      FROM asset_definitions
+      WHERE definition_id = ANY($1)
+    `,
+      [definitionIds],
+    );
+
+    for (const row of assets.rows) {
+      for (const leafDefinition of leafDefinitions) {
+        await client.query(
+          `
+          ALTER TABLE "${row.asset_id}"
+          DROP COLUMN "${leafDefinition}"
+        `,
+        );
+      }
+    }
+
+    await client.query(
+      `
+      DELETE FROM definitions
+      WHERE id = $1
+    `,
+      [id],
+    );
+  },
+
+  getParents: async (id: DefinitionId) => {
+    return await getParents(id);
+  },
+
+  getLeafDefinitions: async (id: DefinitionId) => {
+    return await getLeafDefinitions(id);
   },
 };
