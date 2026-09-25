@@ -3,48 +3,57 @@ import { db_asset } from "../db/db_asset.js";
 import type { AssetId } from "../domain/asset.js";
 import { asset_schema } from "./schema/schema.js";
 
-
 export const assets_api = async (req: IncomingMessage, res: ServerResponse) => {
-  if (req.method === "POST" && req.url === "/assets") {
-  const chunks: Buffer[] = [];
+  
+  if (req.method === "GET" && req.url === "/assets") {
+    const assets = await db_asset.getAll();
 
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-
-  const body = JSON.parse(Buffer.concat(chunks).toString());
-
-  const result = asset_schema.safeParse(body);
-
-  if (!result.success) {
-    res.statusCode = 400;
+    res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
-    res.end(
-      JSON.stringify({
-        error: "Invalid asset",
-      }),
-    );
+    res.end(JSON.stringify(assets));
     return;
   }
 
-  try {
-    const asset = await db_asset.save(result.data);
+  if (req.method === "POST" && req.url === "/assets") {
+    const chunks: Buffer[] = [];
 
-    res.statusCode = 201;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(asset));
-  } catch (error) {
-    res.statusCode = 400;
-    res.setHeader("Content-Type", "application/json");
-    res.end(
-      JSON.stringify({
-        error: "Invalid asset",
-      }),
-    );
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+
+    const body = JSON.parse(Buffer.concat(chunks).toString());
+
+    const result = asset_schema.safeParse(body);
+
+    if (!result.success) {
+      res.statusCode = 400;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({
+          error: "Invalid asset",
+        }),
+      );
+      return;
+    }
+
+    try {
+      const asset = await db_asset.save(result.data);
+
+      res.statusCode = 201;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(asset));
+    } catch (error) {
+      res.statusCode = 400;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({
+          error: "Invalid asset",
+        }),
+      );
+    }
+
+    return;
   }
-
-  return;
-}
 
   if (req.method === "GET" && req.url?.startsWith("/assets/")) {
     const id = req.url.split("/")[2];

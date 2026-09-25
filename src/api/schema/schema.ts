@@ -5,14 +5,13 @@ import type { DefinitionId } from "../../domain/definition.js";
 
 const assetIdSchema = z.string().transform((id) => id as AssetId);
 
-const instanceIdSchema = z.string().transform((id) => id as InstanceId);
+
 
 const definitionIdSchema = z.string().transform(
   (id) => id as DefinitionId,
 );
 
 export const instance_schema = z.object({
-  asset_db_id: instanceIdSchema,
   type: assetIdSchema,
   properties: z.record(z.string(), z.unknown()),
 });

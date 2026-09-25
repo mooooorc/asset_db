@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { AssetId } from "../domain/asset.js";
 import type { Instance, InstanceId } from "../domain/instance.js";
 import { client } from "./client.js";
@@ -28,10 +29,19 @@ function createInsertQuery(instance: Instance) {
 }
 
 export const db_instance = {
-  save: async (instance: Instance) => {
-    const { query, values } = createInsertQuery(instance);
+  save: async (
+    instance: Omit<Instance, "asset_db_id">,
+  ): Promise<Instance> => {
+    const newInstance = {
+      ...instance,
+      asset_db_id: randomUUID() as InstanceId,
+    };
+
+    const { query, values } = createInsertQuery(newInstance);
 
     await client.query(query, values);
+
+    return newInstance;
   },
 
   get: async (
@@ -58,6 +68,25 @@ export const db_instance = {
       type,
       properties,
     };
+  },
+
+  getAll: async (type: AssetId) => {
+    const result = await client.query(
+      `
+        SELECT *
+        FROM "${type}"
+      `,
+    );
+
+    return result.rows.map((row) => {
+      const { asset_db_ID, ...properties } = row;
+
+      return {
+        asset_db_id: asset_db_ID,
+        type,
+        properties,
+      };
+    });
   },
 
   delete: async (
