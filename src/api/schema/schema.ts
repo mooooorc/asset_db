@@ -17,6 +17,7 @@ export const instance_schema = z.object({
 });
 
 export const asset_schema = z.object({
+  id: assetIdSchema,
   name: z.string(),
   definitions: z.array(definitionIdSchema),
 });

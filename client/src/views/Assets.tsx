@@ -101,42 +101,48 @@ export function AssetsView() {
       </div>
 
       {isModalOpen && (
-        <div>
-          <h2>Create asset</h2>
+  <div>
+    <h2>Create asset</h2>
 
+    <input
+      value={id}
+      onChange={(event) => setId(event.target.value)}
+      placeholder="Id"
+    />
+
+    <input
+      value={name}
+      onChange={(event) => setName(event.target.value)}
+      placeholder="Name"
+    />
+
+    <h3>Definitions</h3>
+
+    {definitions.map((definition) => (
+      <div key={definition.id}>
+        <label>
           <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Name"
+            type="checkbox"
+            checked={selectedDefinitions.includes(definition.id)}
+            onChange={() => {
+              setSelectedDefinitions((current) =>
+                current.includes(definition.id)
+                  ? current.filter((id) => id !== definition.id)
+                  : [...current, definition.id],
+              );
+            }}
           />
 
-          <h3>Definitions</h3>
+          {definition.name}
+        </label>
+      </div>
+    ))}
 
-          {definitions.map((definition) => (
-            <div key={definition.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedDefinitions.includes(definition.id)}
-                  onChange={() => {
-                    setSelectedDefinitions((current) =>
-                      current.includes(definition.id)
-                        ? current.filter((id) => id !== definition.id)
-                        : [...current, definition.id],
-                    );
-                  }}
-                />
+    <button onClick={createAsset}>Create</button>
 
-                {definition.name}
-              </label>
-            </div>
-          ))}
-
-          <button onClick={createAsset}>Create</button>
-
-          <button onClick={() => setIsModalOpen(false)}>Cancel</button>
-        </div>
-      )}
+    <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+  </div>
+)}
     </>
   );
 }
