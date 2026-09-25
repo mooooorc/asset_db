@@ -11,7 +11,3 @@ export type Asset = {
   definitions: DefinitionId[];
 };
 
-export type NewAsset = {
-  name: string;
-  definitions: DefinitionId[];
-}
