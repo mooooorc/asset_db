@@ -2,13 +2,14 @@ import { useState } from "react";
 import { DefinitionsView } from "./views/Definitions";
 import { AssetsView } from "./views/Assets";
 import { InstancesView } from "./views/Instances";
+import { PackageView } from "./views/Package";
 
 
 
 
 
 function App() {
-  const [view, setView] = useState<"definitions" | "assets" | "instances">(
+  const [view, setView] = useState<"definitions" | "assets" | "instances" | "packages">(
     "definitions",
   );
 
@@ -24,6 +25,7 @@ function App() {
         <button onClick={() => setView("assets")}>Assets</button>
 
         <button onClick={() => setView("instances")}>Instances</button>
+        <button onClick={() => setView("packages")}>Packages</button>
       </nav>
       <hr/>
 
@@ -38,6 +40,7 @@ function App() {
        <InstancesView />
         </>
       )}
+      {view === "packages" && (<PackageView />)}
       
     </>
   );

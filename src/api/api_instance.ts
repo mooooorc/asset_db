@@ -5,7 +5,7 @@ import type { InstanceId } from "../domain/instance.js";
 import { instance_schema } from "./schema/schema.js";
 
 
-export const instances_api = async (
+export const api_instance = async (
   req: IncomingMessage,
   res: ServerResponse,
 ) => {

@@ -1,9 +1,10 @@
 import { createServer, ServerResponse } from "node:http";
 
 import { connect } from "./db/client.js";
-import { definitions_api } from "./api/definitions.js";
-import { assets_api } from "./api/assets.js";
-import { instances_api } from "./api/instances.js";
+import { api_definition } from "./api/api_definition.js";
+import { api_asset } from "./api/api_asset.js";
+import { api_instance } from "./api/api_instance.js";
+import { api_package } from "./api/api_package.js";
 
 await connect();
 
@@ -23,17 +24,21 @@ const server = createServer(async (req, res) => {
 }
 
   if (req.url?.startsWith("/definitions")) {
-    await definitions_api(req, res);
+    await api_definition(req, res);
     return;
   }
   if (req.url?.startsWith("/assets")) {
-    await assets_api(req, res);
+    await api_asset(req, res);
     return;
   }
   if(req.url?.startsWith("/instances")) {
-    await instances_api(req, res);
+    await api_instance(req, res);
     return;
   }
+  if (req.url?.startsWith("/packages")) {
+  await api_package(req, res);
+  return;
+}
 
   res.writeHead(404);
   res.end();

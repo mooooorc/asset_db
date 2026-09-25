@@ -5,7 +5,7 @@ import type { DefinitionId } from "../domain/definition.js";
 import { definition_schema } from "./schema/schema.js";
 
 
-export const definitions_api = async (
+export const api_definition = async (
   req: IncomingMessage,
   res: ServerResponse,
 ) => {
