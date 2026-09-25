@@ -24,10 +24,13 @@ export const asset_schema = z.object({
 
 export const definition_schema = z.union([
   z.object({
+    id: definitionIdSchema,
     name: z.string(),
     valueType: z.enum(["string", "number", "boolean"]),
   }),
+
   z.object({
+    id: definitionIdSchema,
     name: z.string(),
     definitions: z.array(definitionIdSchema),
   }),
