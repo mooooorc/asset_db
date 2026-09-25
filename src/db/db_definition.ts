@@ -151,38 +151,46 @@ export const db_definition = {
 },
 
   delete: async (id: DefinitionId) => {
-    const parents = await getParents(id);
-    const definitionIds = [id, ...parents];
-    const leafDefinitions = await getLeafDefinitions(id);
+  const parents = await getParents(id);
+  const definitionIds = [id, ...parents];
+  const leafDefinitions = await getLeafDefinitions(id);
 
-    const assets = await client.query(
-      `
+  const assets = await client.query(
+    `
       SELECT DISTINCT asset_id
       FROM asset_definitions
       WHERE definition_id = ANY($1)
     `,
-      [definitionIds],
-    );
+    [definitionIds],
+  );
 
-    for (const row of assets.rows) {
-      for (const leafDefinition of leafDefinitions) {
-        await client.query(
-          `
+  for (const row of assets.rows) {
+    for (const leafDefinition of leafDefinitions) {
+      await client.query(
+        `
           ALTER TABLE "${row.asset_id}"
           DROP COLUMN "${leafDefinition}"
         `,
-        );
-      }
+      );
     }
+  }
 
-    await client.query(
-      `
+  await client.query(
+    `
+      DELETE FROM asset_definitions
+      WHERE definition_id = ANY($1)
+    `,
+    [definitionIds],
+  );
+
+  await client.query(
+    `
       DELETE FROM definitions
       WHERE id = $1
     `,
-      [id],
-    );
-  },
+    [id],
+  );
+},
 
   getParents: async (id: DefinitionId) => {
     return await getParents(id);

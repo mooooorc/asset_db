@@ -10,45 +10,60 @@ export const instances_api = async (
   res: ServerResponse,
 ) => {
   if (req.method === "POST" && req.url === "/instances") {
-    const chunks: Buffer[] = [];
+  const chunks: Buffer[] = [];
 
-    for await (const chunk of req) {
-      chunks.push(chunk);
-    }
+  for await (const chunk of req) {
+    chunks.push(chunk);
+  }
 
-    const body = JSON.parse(Buffer.concat(chunks).toString());
+  const body = JSON.parse(Buffer.concat(chunks).toString());
 
-    const result = instance_schema.safeParse(body);
+  const result = instance_schema.safeParse(body);
 
-    if (!result.success) {
-      res.statusCode = 400;
-      res.setHeader("Content-Type", "application/json");
-      res.end(
-        JSON.stringify({
-          error: "Invalid instance",
-        }),
-      );
-      return;
-    }
-
-    try {
-      await db_instance.save(result.data);
-
-      res.statusCode = 201;
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify(result.data));
-    } catch (error) {
-      res.statusCode = 400;
-      res.setHeader("Content-Type", "application/json");
-      res.end(
-        JSON.stringify({
-          error: "Invalid instance",
-        }),
-      );
-    }
-
+  if (!result.success) {
+    res.statusCode = 400;
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        error: "Invalid instance",
+      }),
+    );
     return;
   }
+
+  try {
+    const instance = await db_instance.save(result.data);
+
+    res.statusCode = 201;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(instance));
+  } catch (error) {
+  res.statusCode = 400;
+  res.setHeader("Content-Type", "application/json");
+  res.end(
+    JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+}
+
+  return;
+}
+
+  if (
+  req.method === "GET" &&
+  req.url?.startsWith("/instances/") &&
+  req.url.split("/").length === 3
+) {
+  const type = req.url.split("/")[2];
+
+  const instances = await db_instance.getAll(type as AssetId);
+
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(instances));
+  return;
+}
 
   if (req.method === "GET" && req.url?.startsWith("/instances/")) {
     const parts = req.url.split("/");
