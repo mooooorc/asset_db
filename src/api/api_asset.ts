@@ -3,7 +3,7 @@ import { db_asset } from "../db/db_asset.js";
 import type { AssetId } from "../domain/asset.js";
 import { asset_schema } from "./schema/schema.js";
 
-export const assets_api = async (req: IncomingMessage, res: ServerResponse) => {
+export const api_asset = async (req: IncomingMessage, res: ServerResponse) => {
   
   if (req.method === "GET" && req.url === "/assets") {
     const assets = await db_asset.getAll();
