@@ -1,22 +1,26 @@
 import { disconnect, connect, client } from "../client.js";
 import { db_definition } from "../db_definition.js";
 import { db_asset } from "../db_asset.js";
+import type { DefinitionId } from "../../domain/definition.js";
 
 
 await connect();
 
 try {
   const latitude = await db_definition.save({
+    id: "latitude" as DefinitionId,
     name: "latitude",
     valueType: "number",
   });
 
   const longitude = await db_definition.save({
+    id: "longitude" as DefinitionId,
     name: "longitude",
     valueType: "number",
   });
 
   const coordinates = await db_definition.save({
+    id: "coordinates" as DefinitionId,
     name: "coordinates",
     definitions: [
       latitude.id,
@@ -25,6 +29,7 @@ try {
   });
 
   const location = await db_definition.save({
+    id: "location" as DefinitionId,
     name: "location",
     definitions: [
       coordinates.id,

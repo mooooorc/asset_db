@@ -11,6 +11,7 @@ type Definition = {
 function App() {
   const [definitions, setDefinitions] = useState<Definition[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [id, setId] = useState("")
   const [name, setName] = useState("");
   const [valueType, setValueType] =
     useState<"string" | "number" | "boolean">("string");
@@ -28,11 +29,13 @@ function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        id,
         name,
         valueType,
       }),
     });
 
+    setId("");
     setName("");
     setValueType("string");
     setIsModalOpen(false);
@@ -63,20 +66,22 @@ function App() {
 
       <div className="table">
         <div className="row header">
+           <div>ID</div>
           <div>Name</div>
           <div>Type</div>
-          <div>ID</div>
+
           <div></div>
         </div>
 
         {definitions.map((definition) => (
           <div className="row" key={definition.id}>
+            <div>{definition.id}</div>
             <div>{definition.name}</div>
             <div>
               {definition.valueType ??
                 `Composite (${definition.definitions?.length ?? 0})`}
             </div>
-            <div>{definition.id}</div>
+            
             <div>
     <button onClick={() => deleteDefinition(definition.id)}>
       🗑️
@@ -89,6 +94,12 @@ function App() {
       {isModalOpen && (
         <div>
           <h2>Create definition</h2>
+
+          <input
+            value={id} 
+            onChange={(event) => setId(event.target.value)}
+            placeholder="id"
+          />
 
           <input
             value={name}

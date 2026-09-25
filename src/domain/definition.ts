@@ -16,12 +16,3 @@ export type Definition =
       definitions: DefinitionId[];
     };
 
-export type NewDefinition =
-  | {
-      name: string;
-      valueType: DefinitionValueType;
-    }
-  | {
-      name: string;
-      definitions: DefinitionId[];
-    };
