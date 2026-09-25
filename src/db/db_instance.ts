@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { AssetId } from "../domain/asset.js";
 import type { Instance, InstanceId } from "../domain/instance.js";
 import { client } from "./client.js";
+import type { DefinitionId } from "../domain/definition.js";
 
 function createInsertQuery(instance: Instance) {
   const properties = Object.keys(instance.properties);
@@ -88,6 +89,32 @@ export const db_instance = {
       };
     });
   },
+
+  getByCondition: async (
+  type: AssetId,
+  definitionId: DefinitionId,
+  value: unknown,
+) => {
+  const result = await client.query(
+    `
+      SELECT *
+      FROM "${type}"
+      WHERE "${definitionId}" = $1
+    `,
+    [value],
+  );
+
+  return result.rows.map((row) => {
+    const { asset_db_ID, ...properties } = row;
+
+    return {
+      asset_db_id: asset_db_ID,
+      type,
+      properties,
+    };
+  });
+},
+  
 
   delete: async (
     type: AssetId,

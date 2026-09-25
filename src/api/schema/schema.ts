@@ -42,6 +42,10 @@ export const definition_schema = z.union([
 export const package_schema = z.object({
   id: packageIdSchema,
   name: z.string(),
+  condition: z.object({
+    definition: definitionIdSchema,
+    value: z.unknown()
+  }).optional()
 });
 
 export const package_instance_schema = z.object({

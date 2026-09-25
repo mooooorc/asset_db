@@ -1,9 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { package_instance_schema, package_schema } from "./schema/schema.js";
 import { db_package } from "../db/db_package.js";
-import type { PackageId } from "../domain/package.js";
-
-
+import type { Package, PackageId } from "../domain/package.js";
 
 export const api_package = async (
   req: IncomingMessage,
@@ -32,11 +30,23 @@ export const api_package = async (
     }
 
     try {
-      const pck = await db_package.save(result.data);
+      const pck: Package = {
+        id: result.data.id,
+        name: result.data.name,
+        ...(result.data.condition
+          ? {
+              condition: result.data.condition,
+            }
+          : {}),
+      };
+
+
+
+      const saved = await db_package.save(pck);
 
       res.statusCode = 201;
       res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify(pck));
+      res.end(JSON.stringify(saved));
     } catch (error) {
       res.statusCode = 400;
       res.setHeader("Content-Type", "application/json");
@@ -51,13 +61,13 @@ export const api_package = async (
   }
 
   if (req.method === "GET" && req.url === "/packages") {
-  const packages = await db_package.getAll();
+    const packages = await db_package.getAll();
 
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(packages));
-  return;
-}
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(packages));
+    return;
+  }
 
   if (
     req.method === "GET" &&
@@ -115,10 +125,7 @@ export const api_package = async (
     }
 
     try {
-      await db_package.addInstance(
-        packageId as PackageId,
-        result.data,
-      );
+      await db_package.addInstance(packageId as PackageId, result.data);
 
       res.statusCode = 201;
       res.end();
@@ -143,9 +150,9 @@ export const api_package = async (
     const parts = req.url.split("/");
     const packageId = parts[2];
 
-    const instances = await db_package.getInstances(
-      packageId as PackageId,
-    );
+    const instances = await db_package.getResolvedInstances(
+  packageId as PackageId,
+);
 
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
