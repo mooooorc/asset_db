@@ -1,10 +1,10 @@
 import { createServer, ServerResponse } from "node:http";
 
-import { connect } from "./db/client.js";
-import { api_definition } from "./api/api_definition.js";
-import { api_asset } from "./api/api_asset.js";
-import { api_instance } from "./api/api_instance.js";
-import { api_package } from "./api/api_package.js";
+import { connect } from "../db/client.js";
+import { api_definition } from "./api_def/main.js";
+import { api_asset } from "./api_asset/main.js";
+import { api_instance } from "./api_instance/main.js";
+import { api_package } from "./api_package/main.js";
 
 await connect();
 

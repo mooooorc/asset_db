@@ -1,6 +1,6 @@
 import { disconnect, connect, client } from "../client.js";
-import { db_definition } from "../db_definition.js";
-import { db_asset } from "../db_asset.js";
+import { db_definition } from "../db_def/main.js";
+import { db_asset } from "../db_asset/main.js";
 import type { DefinitionId } from "../../domain/definition.js";
 
 
