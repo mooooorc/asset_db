@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "migrate": "tsx src/db/migrate.ts",
-    "api": "tsx src/api.ts"
+    "api": "tsx src/api/api.ts"
   },
   "keywords": [],
   "author": "",

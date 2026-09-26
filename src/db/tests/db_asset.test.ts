@@ -1,8 +1,8 @@
 import type { Asset, AssetId } from "../../domain/asset.js";
 import type { Definition, DefinitionId } from "../../domain/definition.js";
 import { client, connect, disconnect } from "../client.js";
-import { db_asset } from "../db_asset.js";
-import { db_definition } from "../db_definition.js";
+import { db_asset } from "../db_asset/main.js";
+import { db_definition } from "../db_def/main.js";
 
 
 await connect();
