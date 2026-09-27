@@ -9,7 +9,7 @@ import { delete_db_instance } from "./delete.js";
 export const db_instance = {
   save: save_db_instance,
   get: get_db_instance,
-  getAl: get_all_db_instances,
+  getAll: get_all_db_instances,
   getByCondition: get_db_instance_by_condition,
   delete: delete_db_instance
 }

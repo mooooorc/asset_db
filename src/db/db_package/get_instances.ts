@@ -1,5 +1,6 @@
 import type { PackageId, PackageInstance } from "../../domain/package.js";
 import { client } from "../client.js";
+import { db_instance } from "../db_instance/main.js";
 import { get_db_package } from "./get.js";
 import { resolve_db_package_condition } from "./resolve_condition.js";
 
@@ -32,13 +33,24 @@ export const get_db_package_instances = async (
 
   const raw_instances = await get_db_package_raw_instances(packageId);
 
-  if (!pack.condition) {
-    return raw_instances;
-  }
+  const linkedInstances = pack.linkedAsset
+    ? await db_instance.getAll(pack.linkedAsset)
+    : [];
 
-  const conditionInstances = await resolve_db_package_condition(pack.condition);
+  const linkedPackageInstances = linkedInstances.map((instance) => ({
+    assetId: instance.type,
+    instanceId: instance.asset_db_id,
+  }));
 
-  const instances = [...raw_instances, ...conditionInstances];
+  const conditionInstances = pack.condition
+    ? await resolve_db_package_condition(pack.condition)
+    : [];
+
+  const instances = [
+    ...raw_instances,
+    ...linkedPackageInstances,
+    ...conditionInstances,
+  ];
 
   return Array.from(
     new Map(

@@ -4,10 +4,10 @@ import { client } from "../client.js";
 export const get_db_asset = async (id: AssetId) => {
   const result = await client.query(
     `
-            SELECT id, name
-            FROM assets
-            WHERE id = $1
-          `,
+      SELECT id, name, expose_as_package
+      FROM assets
+      WHERE id = $1
+    `,
     [id],
   );
 
@@ -17,10 +17,10 @@ export const get_db_asset = async (id: AssetId) => {
 
   const definitions = await client.query(
     `
-            SELECT definition_id
-            FROM asset_definitions
-            WHERE asset_id = $1
-          `,
+      SELECT definition_id
+      FROM asset_definitions
+      WHERE asset_id = $1
+    `,
     [id],
   );
 
@@ -28,5 +28,8 @@ export const get_db_asset = async (id: AssetId) => {
     id: asset.id,
     name: asset.name,
     definitions: definitions.rows.map((row) => row.definition_id),
+    ...(asset.expose_as_package
+      ? { exposeAsPackage: true as const }
+      : {}),
   };
 };
