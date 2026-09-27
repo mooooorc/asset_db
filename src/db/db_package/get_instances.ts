@@ -2,7 +2,7 @@ import type { PackageId, PackageInstance } from "../../domain/package.js";
 import { client } from "../client.js";
 import { db_instance } from "../db_instance/main.js";
 import { get_db_package } from "./get.js";
-import { resolve_db_package_condition } from "./resolve_condition.js";
+import { resolve_db_package_conditions } from "./resolve_conditions.js";
 
 const get_db_package_raw_instances = async (
   packageId: PackageId,
@@ -42,8 +42,8 @@ export const get_db_package_instances = async (
     instanceId: instance.asset_db_id,
   }));
 
-  const conditionInstances = pack.condition
-    ? await resolve_db_package_condition(pack.condition)
+  const conditionInstances = pack.conditions?.length
+    ? await resolve_db_package_conditions(pack.conditions)
     : [];
 
   const instances = [

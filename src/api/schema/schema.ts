@@ -6,13 +6,11 @@ import type { InstanceId } from "../../domain/instance.js";
 
 const assetIdSchema = z.string().transform((id) => id as AssetId);
 
-const definitionIdSchema = z.string().transform(
-  (id) => id as DefinitionId,
-);
+const definitionIdSchema = z.string().transform((id) => id as DefinitionId);
 
-const packageIdSchema = z.string().transform((id) => id as PackageId)
+const packageIdSchema = z.string().transform((id) => id as PackageId);
 
-const instanceIdSchema = z.string().transform((id) => id as InstanceId)
+const instanceIdSchema = z.string().transform((id) => id as InstanceId);
 
 export const instance_schema = z.object({
   type: assetIdSchema,
@@ -52,11 +50,15 @@ export const definition_schema = z.union([
 export const package_schema = z.object({
   id: packageIdSchema,
   name: z.string(),
-  condition: z.object({
-    definition: definitionIdSchema,
-    operator: z.enum(["equal", "different", "greater", "lower"]),
-    value: z.unknown()
-  }).optional()
+  conditions: z
+    .array(
+      z.object({
+        definition: definitionIdSchema,
+        operator: z.enum(["equal", "different", "greater", "lower"]),
+        value: z.unknown(),
+      }),
+    )
+    .optional(),
 });
 
 export const package_instance_schema = z.object({

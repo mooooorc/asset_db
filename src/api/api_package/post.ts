@@ -29,17 +29,17 @@ export const post_api_package = async (
   }
 
   try {
-    const pck: Package = {
+    const pack: Package = {
       id: result.data.id,
       name: result.data.name,
-      ...(result.data.condition
+      ...(result.data.conditions
         ? {
-            condition: result.data.condition,
+            conditions: result.data.conditions,
           }
         : {}),
     };
 
-    const saved = await db_package.save(pck);
+    const saved = await db_package.save(pack);
 
     res.statusCode = 201;
     res.setHeader("Content-Type", "application/json");

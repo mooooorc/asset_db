@@ -9,10 +9,7 @@ export const get_db_package = async (
       SELECT
         id,
         name,
-        linked_asset_id,
-        condition_definition,
-        condition_operator,
-        condition_value
+        linked_asset_id
       FROM packages
       WHERE id = $1
     `,
@@ -23,6 +20,18 @@ export const get_db_package = async (
 
   if (!row) return null;
 
+  const conditions = await client.query(
+    `
+      SELECT
+        definition_id,
+        operator,
+        value
+      FROM package_conditions
+      WHERE package_id = $1
+    `,
+    [id],
+  );
+
   return {
     id: row.id,
     name: row.name,
@@ -31,13 +40,13 @@ export const get_db_package = async (
           linkedAsset: row.linked_asset_id,
         }
       : {}),
-    ...(row.condition_definition
+    ...(conditions.rows.length > 0
       ? {
-          condition: {
-            definition: row.condition_definition,
-            operator: row.condition_operator,
-            value: row.condition_value,
-          },
+          conditions: conditions.rows.map((condition) => ({
+            definition: condition.definition_id,
+            operator: condition.operator,
+            value: condition.value,
+          })),
         }
       : {}),
   };

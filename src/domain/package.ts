@@ -10,7 +10,7 @@ export type Package = {
   id: PackageId;
   name: string;
   linkedAsset?: AssetId;
-  condition?: PackageCondition;
+  conditions?: PackageCondition[];
 };
 
 export type PackageInstance = {
