@@ -28,14 +28,7 @@ export const api_package = async (
     return
   }
 
-  if (
-    req.method === "POST" &&
-    req.url?.startsWith("/packages/") &&
-    req.url.endsWith("/instances")
-  ) {
-    await post_api_package_instance(req, res);
-    return
-  }
+
 
   if (
     req.method === "GET" &&

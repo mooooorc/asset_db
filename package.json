@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "migrate": "tsx src/db/migrate.ts",
+    "migrate": "tsx src/db/migrations/migrate.ts",
     "api": "tsx src/api/api.ts"
   },
   "keywords": [],
