@@ -1,6 +1,5 @@
 import type { PackageId, PackageInstance } from "../../domain/package.js";
 import { client } from "../client.js";
-import { db_package } from "./main.js";
 import { get_db_package } from "./get.js";
 import { resolve_db_package_condition } from "./resolve_condition.js";
 
@@ -22,31 +21,31 @@ const get_db_package_raw_instances = async (
   }));
 };
 
-export const get_db_package_instances = async ( packageId: PackageId ): Promise<PackageInstance[]> => {
+export const get_db_package_instances = async (
+  packageId: PackageId,
+): Promise<PackageInstance[]> => {
+  const pack = await get_db_package(packageId);
 
-    const pack = await get_db_package(packageId);
-    
-        if (!pack) {
-          return [];
-        }
-    
-        const raw_instances = await get_db_package_raw_instances(packageId);
-    
-        if (!pack.condition) {
-          return raw_instances;
-        }
-    
-        const conditionInstances = await resolve_db_package_condition(pack.condition);
-    
-        const instances = [...raw_instances, ...conditionInstances];
-    
-        return Array.from(
-          new Map(
-            instances.map((instance) => [
-              `${instance.assetId}:${instance.instanceId}`,
-              instance,
-            ]),
-          ).values(),
-        );
-      }
+  if (!pack) {
+    return [];
+  }
 
+  const raw_instances = await get_db_package_raw_instances(packageId);
+
+  if (!pack.condition) {
+    return raw_instances;
+  }
+
+  const conditionInstances = await resolve_db_package_condition(pack.condition);
+
+  const instances = [...raw_instances, ...conditionInstances];
+
+  return Array.from(
+    new Map(
+      instances.map((instance) => [
+        `${instance.assetId}:${instance.instanceId}`,
+        instance,
+      ]),
+    ).values(),
+  );
+};
