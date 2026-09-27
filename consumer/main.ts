@@ -1,5 +1,5 @@
 
-const call = "http://localhost:3000/packages/valencia"
+const call = "http://localhost:3000/packages/small-pipes"
 const response = await fetch(
   call
 );
