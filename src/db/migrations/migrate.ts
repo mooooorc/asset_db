@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { client, connect, disconnect } from "./client.js";
+import { client, connect, disconnect } from "../client.js";
 
 
 await connect()
@@ -11,10 +11,7 @@ await client.query(`
   );
 `);
 
-const migrationsPath = path.join(
-  import.meta.dirname,
-  "migrations"
-);
+const migrationsPath = import.meta.dirname;
 
 const files = (await fs.readdir(migrationsPath))
   .filter(file => file.endsWith(".sql"))
