@@ -3,6 +3,7 @@ import { post_api_package } from "./post.js";
 import { get_all_api_packages } from "./get_all.js";
 import { get_api_package } from "./get.js";
 import { post_api_package_instance } from "./post_instance.js";
+import { delete_api_package } from "./delete.js";
 
 
 export const api_package = async (
@@ -36,4 +37,13 @@ export const api_package = async (
     await post_api_package_instance(req, res);
     return;
   }
+
+  if (
+  req.method === "DELETE" &&
+  req.url?.startsWith("/packages/") &&
+  req.url.split("/").length === 3
+) {
+  await delete_api_package(req, res);
+  return;
+}
 };
