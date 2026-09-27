@@ -44,6 +44,7 @@ export const package_schema = z.object({
   name: z.string(),
   condition: z.object({
     definition: definitionIdSchema,
+    operator: z.enum(["equal", "different", "greater", "lower"]),
     value: z.unknown()
   }).optional()
 });

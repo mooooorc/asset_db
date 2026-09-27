@@ -11,6 +11,7 @@ export const resolve_db_package_condition = async (condition: PackageCondition):
             db_instance.getByCondition(
               assetId,
               condition.definition,
+              condition.operator,
               condition.value,
             ),
           ),

@@ -4,7 +4,7 @@ import { client } from "../client.js";
 export const get_all_db_packages = async (): Promise<Package[]> => {
     const result = await client.query(
       `
-      SELECT id, name, condition_definition, condition_value
+      SELECT id, name, condition_definition, condition_operator, condition_value
       FROM packages
     `,
     );
@@ -16,6 +16,7 @@ export const get_all_db_packages = async (): Promise<Package[]> => {
         ? {
             condition: {
               definition: row.condition_definition,
+              operator: row.condition_operator,
               value: row.condition_value,
             },
           }

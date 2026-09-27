@@ -17,15 +17,22 @@ export type PackageInstance = {
   instanceId: InstanceId;
 };
 
+export type PackageConditionOperator =
+  | "equal"
+  | "different"
+  | "greater"
+  | "lower";
+
 export type PackageCondition = {
-  definition: DefinitionId,
+  definition: DefinitionId;
+  operator: PackageConditionOperator;
   value: unknown;
-}
+};
 
 export type PackageContent = {
-  asset: AssetId,
-  [key: string]: unknown
-}
+  asset: AssetId;
+  [key: string]: unknown;
+};
 
 export const instance_to_package_content = (
   instance: Instance,

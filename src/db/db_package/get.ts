@@ -6,7 +6,7 @@ export const get_db_package = async (
 ): Promise<Package | null> => {
   const result = await client.query(
     `
-          SELECT id, name, condition_definition, condition_value
+          SELECT id, name, condition_definition, condition_operator, condition_value
           FROM packages
           WHERE id = $1
         `,
@@ -24,6 +24,7 @@ export const get_db_package = async (
       ? {
           condition: {
             definition: row.condition_definition,
+            operator: row.condition_operator,
             value: row.condition_value,
           },
         }
