@@ -1,6 +1,5 @@
 import type { Instance, InstanceId } from "../../domain/instance.js";
 import { randomUUID } from "node:crypto";
-
 import { client } from "../client.js";
 
 export const save_db_instance = async (

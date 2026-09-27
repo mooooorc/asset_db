@@ -3,7 +3,7 @@ import type { Definition } from "../../domain/definition.js";
 import type { PackageId } from "../../domain/package.js";
 import { client } from "../client.js";
 import { db_definition } from "../db_def/main.js";
-import { save_db_package } from "../db_package/save.js";
+import { insert_db_package } from "../db_package/save.js";
 import { create_asset_table } from "./create_asset_table.js";
 import { getColumns } from "./get_columns.js";
 
@@ -43,13 +43,11 @@ export const save_db_asset = async (asset: Asset): Promise<Asset> => {
 
     await create_asset_table(asset, columns);
 
-   
-
     if (asset.exposeAsPackage) {
-      await save_db_package({
+      await insert_db_package({
         id: asset.id as unknown as PackageId,
         name: asset.name,
-        linkedAsset: asset.id
+        linkedAsset: asset.id,
       });
     }
 
