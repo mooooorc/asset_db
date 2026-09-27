@@ -1,4 +1,9 @@
-ALTER TABLE packages
-ADD COLUMN condition_definition TEXT,
-ADD COLUMN condition_operator TEXT,
-ADD COLUMN condition_value JSONB;
+CREATE TABLE package_conditions (
+    package_id TEXT NOT NULL
+        REFERENCES packages(id)
+        ON DELETE CASCADE,
+    definition_id TEXT NOT NULL,
+    operator TEXT NOT NULL,
+    value JSONB,
+    PRIMARY KEY (package_id, definition_id, operator)
+);
