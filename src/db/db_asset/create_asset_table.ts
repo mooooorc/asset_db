@@ -4,7 +4,7 @@ import type { Asset_table_column } from "./types.js";
 
 
 
-export const createAssetTable = async (asset: Asset, columns: Asset_table_column[]) => {
+export const create_asset_table = async (asset: Asset, columns: Asset_table_column[]) => {
   const columnDefinitions = columns
     .map((column) => `"${column.name}" ${column.type}`)
     .join(",\n");

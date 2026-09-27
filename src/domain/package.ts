@@ -9,6 +9,7 @@ export type PackageId = string & {
 export type Package = {
   id: PackageId;
   name: string;
+  linkedAsset?: AssetId;
   condition?: PackageCondition;
 };
 

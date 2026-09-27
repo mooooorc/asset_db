@@ -9,5 +9,6 @@ export type Asset = {
   id: AssetId;
   name: string;
   definitions: DefinitionId[];
+  exposeAsPackage?: true
 };
 

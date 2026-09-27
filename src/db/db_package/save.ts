@@ -2,20 +2,29 @@ import type { Package } from "../../domain/package.js";
 import { client } from "../client.js";
 
 export const save_db_package = async (pack: Package): Promise<Package> => {
+  await client.query(
+    `
+      INSERT INTO packages (
+        id,
+        name,
+        linked_asset_id,
+        condition_definition,
+        condition_operator,
+        condition_value
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `,
+    [
+      pack.id,
+      pack.name,
+      pack.linkedAsset ?? null,
+      pack.condition?.definition ?? null,
+      pack.condition?.operator ?? null,
+      pack.condition
+        ? JSON.stringify(pack.condition.value)
+        : null,
+    ],
+  );
 
-    await client.query(
-          `
-          INSERT INTO packages (id, name, condition_definition, condition_operator, condition_value)
-          VALUES ($1, $2, $3, $4, $5)
-        `,
-          [
-            pack.id,
-            pack.name,
-            pack.condition?.definition ?? null,
-            pack.condition?.operator ?? null,
-            pack.condition ? JSON.stringify(pack.condition.value) : null,
-          ],
-        );
-    
-        return pack;
-}
+  return pack;
+};

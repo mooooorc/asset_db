@@ -19,11 +19,21 @@ export const instance_schema = z.object({
   properties: z.record(z.string(), z.unknown()),
 });
 
-export const asset_schema = z.object({
-  id: assetIdSchema,
-  name: z.string(),
-  definitions: z.array(definitionIdSchema),
-});
+export const asset_schema = z
+  .object({
+    id: assetIdSchema,
+    name: z.string(),
+    definitions: z.array(definitionIdSchema),
+    exposeAsPackage: z.literal(true).optional(),
+  })
+  .transform((asset) => {
+    if (asset.exposeAsPackage === undefined) {
+      const { exposeAsPackage, ...rest } = asset;
+      return rest;
+    }
+
+    return asset;
+  });
 
 export const definition_schema = z.union([
   z.object({

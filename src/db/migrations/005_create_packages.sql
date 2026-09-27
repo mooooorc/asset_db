@@ -1,6 +1,7 @@
 CREATE TABLE packages (
     id TEXT PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    linked_asset_id TEXT REFERENCES assets(id)
 );
 
 CREATE TABLE package_instances (
