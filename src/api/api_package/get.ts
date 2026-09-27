@@ -1,6 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { db_package } from "../../db/db_package/main.js";
-import { instance_to_package_content, type PackageId } from "../../domain/package.js";
+import {
+  instance_to_package_content,
+  type PackageId,
+} from "../../domain/package.js";
 import { db_instance } from "../../db/db_instance/main.js";
 
 export const get_api_package = async (
@@ -11,9 +14,9 @@ export const get_api_package = async (
 
   const id = req.url.split("/")[2];
 
-  const pck = await db_package.get(id as PackageId);
+  const pack = await db_package.get(id as PackageId);
 
-  if (!pck) {
+  if (!pack) {
     res.statusCode = 404;
     res.setHeader("Content-Type", "application/json");
     res.end(
@@ -24,7 +27,7 @@ export const get_api_package = async (
     return;
   }
 
-  const instances = await db_package.getInstances(pck.id);
+  const instances = await db_package.getInstances(pack.id);
 
   const resolvedInstances = await Promise.all(
     instances.map((instance) =>
@@ -34,12 +37,22 @@ export const get_api_package = async (
 
   const content = resolvedInstances
     .filter((instance) => instance !== null)
-    .map(instance_to_package_content);
+    .reduce<Record<string, Record<string, unknown>[]>>((content, instance) => {
+      const asset = instance.type;
+
+      if (!content[asset]) {
+        content[asset] = [];
+      }
+
+      content[asset].push(instance_to_package_content(instance));
+
+      return content;
+    }, {});
 
   const response = {
-    id: pck.id,
-    name: pck.name,
-    items: content.length,
+    id: pack.id,
+    name: pack.name,
+    items: resolvedInstances.length,
     content,
   };
 

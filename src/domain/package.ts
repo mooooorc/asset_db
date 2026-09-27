@@ -30,15 +30,11 @@ export type PackageCondition = {
 };
 
 export type PackageContent = {
-  asset: AssetId;
-  [key: string]: unknown;
+  [asset:string]: Record<string, unknown>
 };
 
 export const instance_to_package_content = (
   instance: Instance,
-): PackageContent => {
-  return {
-    asset: instance.type,
-    ...instance.properties,
-  };
+): Record<string, unknown> => {
+  return instance.properties;
 };
