@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { definition_schema } from "../schema/schema.js";
+
 import { db_definition } from "../../db/db_def/main.js";
+import { definition_schema } from "../schema/definition.js";
 
 export const post_api_def = async (
   req: IncomingMessage,

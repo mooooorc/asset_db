@@ -10,7 +10,7 @@ export const get_leaf_db_def = async (
     return [];
   }
 
-  if ("valueType" in definition) {
+  if ("type" in definition) {
     return [definition.id];
   }
 

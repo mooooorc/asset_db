@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { consumer_schema } from "../schema/schema.js";
+
 import { db_consumer } from "../../db/db_consumer/main.js";
+import { consumer_schema } from "../schema/consumer.js";
 
 
 export const post_api_consumer = async (

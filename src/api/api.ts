@@ -6,6 +6,7 @@ import { api_asset } from "./api_asset/main.js";
 import { api_instance } from "./api_instance/main.js";
 import { api_package } from "./api_package/main.js";
 import { api_consumer } from "./api_consumer/main.js";
+import { api_type } from "./api_type/main.js";
 
 await connect();
 
@@ -23,6 +24,11 @@ const server = createServer(async (req, res) => {
   res.end();
   return;
 }
+
+  if(req.url?.startsWith("/types")) {
+    await api_type(req, res)
+    return
+  }
 
   if (req.url?.startsWith("/definitions")) {
     await api_definition(req, res);

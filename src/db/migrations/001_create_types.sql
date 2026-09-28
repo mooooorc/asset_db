@@ -2,7 +2,7 @@ CREATE TABLE types (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     base_type TEXT NOT NULL,
-    rule TEXT
+    default_value JSONB
 );
 
 INSERT INTO types (
