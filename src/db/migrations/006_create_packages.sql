@@ -15,3 +15,4 @@ CREATE TABLE package_instances (
 
 CREATE INDEX package_instances_asset_instance_idx
     ON package_instances (asset_id, instance_id);
+    
