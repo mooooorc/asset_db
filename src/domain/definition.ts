@@ -1,3 +1,5 @@
+import type { TypeId } from "./type.js";
+
 export type DefinitionId = string & {
   readonly __brand: "DefinitionId";
 };
@@ -9,7 +11,7 @@ export type Definition =
       id: DefinitionId;
       name: string;
       description?: string;
-      valueType: DefinitionValueType;
+      type: TypeId;
     }
   | {
       id: DefinitionId;

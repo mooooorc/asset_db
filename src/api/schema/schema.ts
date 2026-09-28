@@ -4,6 +4,7 @@ import type { DefinitionId } from "../../domain/definition.js";
 import type { PackageId } from "../../domain/package.js";
 import type { InstanceId } from "../../domain/instance.js";
 import type { ConsumerId } from "../../domain/consumer.js";
+import type { TypeId } from "../../domain/type.js";
 
 const assetIdSchema = z.string().transform((id) => id as AssetId);
 
@@ -13,6 +14,7 @@ const packageIdSchema = z.string().transform((id) => id as PackageId);
 
 const instanceIdSchema = z.string().transform((id) => id as InstanceId);
 const consumerIdSchema = z.string().transform((id) => id as ConsumerId);
+const typeIdSchema = z.string().transform((id) => id as TypeId);
 
 export const instance_schema = z.object({
   type: assetIdSchema,
@@ -41,7 +43,7 @@ export const definition_schema = z.union([
       id: definitionIdSchema,
       name: z.string(),
       description: z.string().optional(),
-      valueType: z.enum(["string", "number", "boolean"]),
+      type: typeIdSchema,
     })
     .transform((definition) => {
       if (definition.description === undefined) {
@@ -52,11 +54,21 @@ export const definition_schema = z.union([
       return definition;
     }),
 
-  z.object({
-    id: definitionIdSchema,
-    name: z.string(),
-    definitions: z.array(definitionIdSchema),
-  }),
+  z
+    .object({
+      id: definitionIdSchema,
+      name: z.string(),
+      description: z.string().optional(),
+      definitions: z.array(definitionIdSchema),
+    })
+    .transform((definition) => {
+      if (definition.description === undefined) {
+        const { description, ...rest } = definition;
+        return rest;
+      }
+
+      return definition;
+    }),
 ]);
 
 export const package_schema = z.object({
