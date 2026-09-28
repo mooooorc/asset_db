@@ -8,11 +8,13 @@ export type Definition =
   | {
       id: DefinitionId;
       name: string;
+      description?: string;
       valueType: DefinitionValueType;
     }
   | {
       id: DefinitionId;
       name: string;
+      description?: string;
       definitions: DefinitionId[];
     };
 
