@@ -6,7 +6,7 @@ export const get_db_type = async (
 ): Promise<Type | null> => {
   const result = await client.query(
     `
-      SELECT id, name, base_type, default_value
+      SELECT id, name, base_type
       FROM types
       WHERE id = $1
     `,
@@ -20,9 +20,6 @@ export const get_db_type = async (
   return {
     id: type.id,
     name: type.name,
-    baseType: type.base_type,
-    ...(type.default_value !== null && {
-      default: type.default_value,
-    }),
+    baseType: type.base_type
   };
 };

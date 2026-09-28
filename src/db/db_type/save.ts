@@ -7,18 +7,14 @@ export const save_db_type = async (type: Type) => {
       INSERT INTO types (
         id,
         name,
-        base_type,
-        default_value
+        base_type
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3)
     `,
     [
       type.id,
       type.name,
       type.baseType,
-      type.default !== undefined
-        ? JSON.stringify(type.default)
-        : null,
-    ],
+    ]
   );
 };

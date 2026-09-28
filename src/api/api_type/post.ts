@@ -34,11 +34,6 @@ export const post_api_type = async (
       id: result.data.id,
       name: result.data.name,
       baseType: result.data.baseType,
-      ...(result.data.default !== undefined
-        ? {
-            default: result.data.default,
-          }
-        : {}),
     };
 
     const saved = await db_type.save(type);
@@ -47,7 +42,7 @@ export const post_api_type = async (
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify(saved));
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json");
     res.end(
