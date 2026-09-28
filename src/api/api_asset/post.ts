@@ -30,9 +30,6 @@ export const post_api_asset = async (
 
   try {
     const asset = await db_asset.save(result.data);
-
-    
-
     res.statusCode = 201;
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify(asset));

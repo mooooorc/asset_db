@@ -19,18 +19,24 @@ export const save_db_asset = async (asset: Asset): Promise<Asset> => {
       [asset.id, asset.name, asset.exposeAsPackage ?? false],
     );
 
-    for (const definitionId of asset.definitions) {
+    for (const definition of asset.definitions) {
       await client.query(
         `
-          INSERT INTO asset_definitions (asset_id, definition_id)
-          VALUES ($1, $2)
-        `,
-        [asset.id, definitionId],
+      INSERT INTO asset_definitions (
+        asset_id,
+        definition_id,
+        required
+      )
+      VALUES ($1, $2, $3)
+    `,
+        [asset.id, definition.definition, definition.required ?? false],
       );
     }
 
     const definitions = await Promise.all(
-      asset.definitions.map((definitionId) => db_definition.get(definitionId)),
+      asset.definitions.map((asset_def) =>
+        db_definition.get(asset_def.definition),
+      ),
     );
 
     const columns = (

@@ -8,8 +8,8 @@ export const remove_db_asset_column = async (
 ) => {
   await client.query(
     `
-                ALTER TABLE "${assetId}"
-                DROP COLUMN "${definitionId}"
-              `,
+      ALTER TABLE "${assetId}"
+      DROP COLUMN "${definitionId}"
+    `,
   );
 };

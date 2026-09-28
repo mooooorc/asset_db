@@ -17,7 +17,7 @@ export const get_db_asset = async (id: AssetId) => {
 
   const definitions = await client.query(
     `
-      SELECT definition_id
+      SELECT definition_id, required
       FROM asset_definitions
       WHERE asset_id = $1
     `,
@@ -27,9 +27,10 @@ export const get_db_asset = async (id: AssetId) => {
   return {
     id: asset.id,
     name: asset.name,
-    definitions: definitions.rows.map((row) => row.definition_id),
-    ...(asset.expose_as_package
-      ? { exposeAsPackage: true as const }
-      : {}),
+    definitions: definitions.rows.map((row) => ({
+      definition: row.definition_id,
+      ...(row.required ? { required: true as const } : {}),
+    })),
+    ...(asset.expose_as_package ? { exposeAsPackage: true as const } : {}),
   };
 };
