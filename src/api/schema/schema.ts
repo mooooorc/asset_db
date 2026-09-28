@@ -3,6 +3,7 @@ import type { AssetId } from "../../domain/asset.js";
 import type { DefinitionId } from "../../domain/definition.js";
 import type { PackageId } from "../../domain/package.js";
 import type { InstanceId } from "../../domain/instance.js";
+import type { ConsumerId } from "../../domain/consumer.js";
 
 const assetIdSchema = z.string().transform((id) => id as AssetId);
 
@@ -11,6 +12,7 @@ const definitionIdSchema = z.string().transform((id) => id as DefinitionId);
 const packageIdSchema = z.string().transform((id) => id as PackageId);
 
 const instanceIdSchema = z.string().transform((id) => id as InstanceId);
+const consumerIdSchema = z.string().transform((id) => id as ConsumerId);
 
 export const instance_schema = z.object({
   type: assetIdSchema,
@@ -65,3 +67,8 @@ export const package_instance_schema = z.object({
   assetId: assetIdSchema,
   instanceId: instanceIdSchema,
 });
+
+export const consumer_schema = z.object({
+  id: consumerIdSchema,
+  name: z.string()
+})
