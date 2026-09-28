@@ -5,6 +5,7 @@ import { api_definition } from "./api_def/main.js";
 import { api_asset } from "./api_asset/main.js";
 import { api_instance } from "./api_instance/main.js";
 import { api_package } from "./api_package/main.js";
+import { api_consumer } from "./api_consumer/main.js";
 
 await connect();
 
@@ -37,6 +38,11 @@ const server = createServer(async (req, res) => {
   }
   if (req.url?.startsWith("/packages")) {
   await api_package(req, res);
+  return;
+}
+
+if (req.url?.startsWith("/consumers")) {
+  await api_consumer(req, res);
   return;
 }
 

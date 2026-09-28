@@ -5,11 +5,25 @@ import {
   type PackageId,
 } from "../../domain/package.js";
 import { db_instance } from "../../db/db_instance/main.js";
+import { authenticate_consumer } from "../api_consumer/authenticate.js";
 
 export const get_api_package = async (
   req: IncomingMessage,
   res: ServerResponse,
 ) => {
+  const consumer = await authenticate_consumer(req);
+
+  if (!consumer) {
+    res.statusCode = 401;
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        error: "Unauthorized",
+      }),
+    );
+    return;
+  }
+
   if (!req.url) return;
 
   const id = req.url.split("/")[2];
@@ -37,17 +51,20 @@ export const get_api_package = async (
 
   const content = resolvedInstances
     .filter((instance) => instance !== null)
-    .reduce<Record<string, Record<string, unknown>[]>>((content, instance) => {
-      const asset = instance.type;
+    .reduce<Record<string, Record<string, unknown>[]>>(
+      (content, instance) => {
+        const asset = instance.type;
 
-      if (!content[asset]) {
-        content[asset] = [];
-      }
+        if (!content[asset]) {
+          content[asset] = [];
+        }
 
-      content[asset].push(instance_to_package_content(instance));
+        content[asset].push(instance_to_package_content(instance));
 
-      return content;
-    }, {});
+        return content;
+      },
+      {},
+    );
 
   const response = {
     id: pack.id,
