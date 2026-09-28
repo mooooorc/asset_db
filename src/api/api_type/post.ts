@@ -1,9 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import { db_asset } from "../../db/db_asset/main.js";
-import { asset_schema } from "../schema/asset.js";
+import type { Type } from "../../domain/type.js";
+import { db_type } from "../../db/db_type/main.js";
+import { type_schema } from "../schema/type.js";
 
-export const post_api_asset = async (
+export const post_api_type = async (
   req: IncomingMessage,
   res: ServerResponse,
 ) => {
@@ -15,33 +16,43 @@ export const post_api_asset = async (
 
   const body = JSON.parse(Buffer.concat(chunks).toString());
 
-  const result = asset_schema.safeParse(body);
+  const result = type_schema.safeParse(body);
 
   if (!result.success) {
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json");
     res.end(
       JSON.stringify({
-        error: "Invalid asset",
+        error: "Invalid type",
       }),
     );
     return;
   }
 
   try {
-    const asset = await db_asset.save(result.data);
+    const type: Type = {
+      id: result.data.id,
+      name: result.data.name,
+      baseType: result.data.baseType,
+      ...(result.data.default !== undefined
+        ? {
+            default: result.data.default,
+          }
+        : {}),
+    };
 
-    
+    const saved = await db_type.save(type);
 
     res.statusCode = 201;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify(asset));
+    res.end(JSON.stringify(saved));
   } catch (error) {
+    console.error(error)
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json");
     res.end(
       JSON.stringify({
-        error: "Invalid asset",
+        error: "Invalid type",
       }),
     );
   }

@@ -2,10 +2,10 @@ import type { Definition, DefinitionId } from "../../domain/definition.js";
 import { client } from "../client.js";
 import { get_db_def } from "./get.js";
 
-export const get_all_db_def =  async (): Promise<Definition[]> => {
+export const get_all_db_def = async (): Promise<Definition[]> => {
   const result = await client.query(
     `
-      SELECT id, name, description, value_type
+      SELECT id, name, description
       FROM definitions
       ORDER BY name
     `,
@@ -21,4 +21,4 @@ export const get_all_db_def =  async (): Promise<Definition[]> => {
         definition !== null,
     ),
   );
-}
+};

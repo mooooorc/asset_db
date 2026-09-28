@@ -8,4 +8,5 @@ export type Type = {
   id: TypeId;
   name: string;
   baseType: BaseType;
+  default?: string | number | boolean;
 };
