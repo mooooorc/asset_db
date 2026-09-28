@@ -5,10 +5,15 @@ export type AssetId = string & {
   readonly __brand: "AssetId";
 };
 
+export type AssetDefinition = {
+  definition: DefinitionId;
+  required?: true;
+}
+
 export type Asset = {
   id: AssetId;
   name: string;
-  definitions: DefinitionId[];
+  definitions: AssetDefinition[];
   exposeAsPackage?: true
 };
 
