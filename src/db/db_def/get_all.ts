@@ -5,7 +5,7 @@ import { get_db_def } from "./get.js";
 export const get_all_db_def =  async (): Promise<Definition[]> => {
   const result = await client.query(
     `
-      SELECT id, name, value_type
+      SELECT id, name, description, value_type
       FROM definitions
       ORDER BY name
     `,

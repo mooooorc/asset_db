@@ -36,11 +36,21 @@ export const asset_schema = z
   });
 
 export const definition_schema = z.union([
-  z.object({
-    id: definitionIdSchema,
-    name: z.string(),
-    valueType: z.enum(["string", "number", "boolean"]),
-  }),
+  z
+    .object({
+      id: definitionIdSchema,
+      name: z.string(),
+      description: z.string().optional(),
+      valueType: z.enum(["string", "number", "boolean"]),
+    })
+    .transform((definition) => {
+      if (definition.description === undefined) {
+        const { description, ...rest } = definition;
+        return rest;
+      }
+
+      return definition;
+    }),
 
   z.object({
     id: definitionIdSchema,
@@ -70,5 +80,5 @@ export const package_instance_schema = z.object({
 
 export const consumer_schema = z.object({
   id: consumerIdSchema,
-  name: z.string()
-})
+  name: z.string(),
+});
