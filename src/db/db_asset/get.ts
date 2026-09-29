@@ -1,5 +1,8 @@
 import type { AssetId } from "../../domain/asset.js";
 import { client } from "../client.js";
+import { map_db_asset } from "./map.js";
+
+
 
 export const get_db_asset = async (id: AssetId) => {
   const result = await client.query(
@@ -17,20 +20,12 @@ export const get_db_asset = async (id: AssetId) => {
 
   const definitions = await client.query(
     `
-      SELECT definition_id, required
+      SELECT definition_id, required, identifiable
       FROM asset_definitions
       WHERE asset_id = $1
     `,
     [id],
   );
 
-  return {
-    id: asset.id,
-    name: asset.name,
-    definitions: definitions.rows.map((row) => ({
-      definition: row.definition_id,
-      ...(row.required ? { required: true as const } : {}),
-    })),
-    ...(asset.expose_as_package ? { exposeAsPackage: true as const } : {}),
-  };
+  return map_db_asset(asset, definitions.rows);
 };

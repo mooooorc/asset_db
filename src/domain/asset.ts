@@ -1,4 +1,4 @@
-import type { Definition, DefinitionId } from "./definition.js";
+import type {  DefinitionId } from "./definition.js";
 
 
 export type AssetId = string & {
@@ -8,6 +8,7 @@ export type AssetId = string & {
 export type AssetDefinition = {
   definition: DefinitionId;
   required?: true;
+  identifiable?: true;
 }
 
 export type Asset = {
