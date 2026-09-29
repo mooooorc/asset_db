@@ -1,3 +1,5 @@
+
+/*
 export type TypeId = string & {
   readonly __brand: "TypeId";
 };
@@ -9,3 +11,4 @@ export type Type = {
   name: string;
   baseType: BaseType;
 };
+*/
