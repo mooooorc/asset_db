@@ -7,6 +7,28 @@ import { insert_db_package } from "../db_package/save.js";
 import { create_asset_table } from "./create_asset_table.js";
 import { get_columns } from "./get_columns.js";
 
+export const insert_db_asset_definitions = async (asset: Asset) => {
+  for (const definition of asset.definitions) {
+    await client.query(
+      `
+      INSERT INTO asset_definitions (
+        asset_id,
+        definition_id,
+        required,
+        identifiable
+      )
+      VALUES ($1, $2, $3, $4)
+    `,
+      [
+        asset.id,
+        definition.definition,
+        definition.required ?? false,
+        definition.identifiable ?? false,
+      ],
+    );
+  }
+};
+
 export const save_db_asset = async (asset: Asset): Promise<Asset> => {
   await client.query("BEGIN");
 
@@ -19,19 +41,7 @@ export const save_db_asset = async (asset: Asset): Promise<Asset> => {
       [asset.id, asset.name, asset.exposeAsPackage ?? false],
     );
 
-    for (const definition of asset.definitions) {
-      await client.query(
-        `
-      INSERT INTO asset_definitions (
-        asset_id,
-        definition_id,
-        required
-      )
-      VALUES ($1, $2, $3)
-    `,
-        [asset.id, definition.definition, definition.required ?? false],
-      );
-    }
+    await insert_db_asset_definitions(asset)
 
     const definitions = await Promise.all(
       asset.definitions.map((asset_def) =>
