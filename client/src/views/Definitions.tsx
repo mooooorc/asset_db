@@ -151,11 +151,7 @@ export function DefinitionsView() {
       <section className="main-view">
         <h1 className="page-title">Definitions</h1>
 
-        <input
-          className="search"
-          placeholder="Search for any definition"
-          type="search"
-        />
+      
 
         <div className="def-table">
           <div className="header"></div>

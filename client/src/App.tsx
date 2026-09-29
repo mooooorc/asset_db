@@ -2,6 +2,7 @@ import { NavLink, Route, Routes } from "react-router";
 
 import "./App.css";
 import { DefinitionsView } from "./views/Definitions";
+import { AssetsView } from "./views/Assets";
 
 function Home() {
   return <h1>AssetDB</h1>;
@@ -12,7 +13,7 @@ function Definitions() {
 }
 
 function Assets() {
-  return <h1>Assets</h1>;
+  return <AssetsView />;
 }
 
 function Instances() {
@@ -30,6 +31,9 @@ function Consumers() {
 const definitions = await fetch("http://localhost:3000/definitions").then((res) => res.json());
 const definitionsCount = definitions.length;
 
+const assets = await fetch("http://localhost:3000/assets").then((res) => res.json())
+const assetsCount = assets.length
+
 function App() {
   return (
     <>
@@ -40,6 +44,14 @@ function App() {
         >
           <span className="nav-title">Definitions</span>
           <span className="nav-counter">{definitionsCount}</span>
+        </NavLink>
+
+         <NavLink
+          className={({ isActive }) => `link ${isActive ? "link-active" : ""}`}
+          to="/assets"
+        >
+          <span className="nav-title">Assets</span>
+          <span className="nav-counter">{assetsCount}</span>
         </NavLink>
         
       </nav>

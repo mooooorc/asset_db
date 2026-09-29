@@ -112,7 +112,7 @@ button {
 .def-table {
   corner-shape: squircle;
   border-radius: 16px;
-  margin-top: 16px;
+
   border: 1px solid #D5D4D4;
   overflow: hidden;
   display: flex;
