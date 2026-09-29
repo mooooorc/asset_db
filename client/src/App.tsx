@@ -1,47 +1,57 @@
-import { useState } from "react";
+import { NavLink, Route, Routes } from "react-router";
+
+import "./App.css";
 import { DefinitionsView } from "./views/Definitions";
-import { AssetsView } from "./views/Assets";
-import { InstancesView } from "./views/Instances";
-import { PackageView } from "./views/Package";
 
+function Home() {
+  return <h1>AssetDB</h1>;
+}
 
+function Definitions() {
+  return <DefinitionsView />;
+}
 
+function Assets() {
+  return <h1>Assets</h1>;
+}
 
+function Instances() {
+  return <h1>Instances</h1>;
+}
+
+function Packages() {
+  return <h1>Packages</h1>;
+}
+
+function Consumers() {
+  return <h1>Consumers</h1>;
+}
+
+const definitions = await fetch("http://localhost:3000/definitions").then((res) => res.json());
+const definitionsCount = definitions.length;
 
 function App() {
-  const [view, setView] = useState<"definitions" | "assets" | "instances" | "packages">(
-    "definitions",
-  );
-
-  
-
-  
-
   return (
     <>
-      <nav>
-        <button onClick={() => setView("definitions")}>Definitions</button>
-
-        <button onClick={() => setView("assets")}>Assets</button>
-
-        <button onClick={() => setView("instances")}>Instances</button>
-        <button onClick={() => setView("packages")}>Packages</button>
+      <nav className="main-nav">
+        <NavLink
+          className={({ isActive }) => `link ${isActive ? "link-active" : ""}`}
+          to="/definitions"
+        >
+          <span className="nav-title">Definitions</span>
+          <span className="nav-counter">{definitionsCount}</span>
+        </NavLink>
+        
       </nav>
-      <hr/>
 
-      {view === "definitions" && (
-       <DefinitionsView />
-      )}
-      {view === "assets" && (
-        <AssetsView />
-      )}
-      {view === "instances" && (
-        <>
-       <InstancesView />
-        </>
-      )}
-      {view === "packages" && (<PackageView />)}
-      
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/definitions" element={<Definitions />} />
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/instances" element={<Instances />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/consumers" element={<Consumers />} />
+      </Routes>
     </>
   );
 }
