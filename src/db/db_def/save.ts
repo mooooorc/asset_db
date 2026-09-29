@@ -4,7 +4,7 @@ import { client } from "../client.js";
 export const save_db_def = async (definition: Definition) => {
   await client.query(
     `
-      INSERT INTO definitions (id, name, description, type_id)
+      INSERT INTO definitions (id, name, description, type)
       VALUES ($1, $2, $3, $4)
     `,
     [

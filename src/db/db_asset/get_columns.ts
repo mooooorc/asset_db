@@ -1,26 +1,20 @@
 import type { Definition } from "../../domain/definition.js";
 import { db_definition } from "../db_def/main.js";
-import { db_type } from "../db_type/main.js";
+
 import type { Asset_table_column } from "./types.js";
 
 
-export const getColumns = async (
+export const get_columns = async (
   definition: Definition,
 ): Promise<Asset_table_column[]> => {
   if ("type" in definition) {
-    const type = await db_type.get(definition.type);
-
-    if (!type) {
-      throw new Error(`Type not found: ${definition.type}`);
-    }
-
     return [
       {
         name: definition.id,
         type:
-          type.baseType === "string"
+          definition.type === "string"
             ? "TEXT"
-            : type.baseType === "number"
+            : definition.type === "number"
               ? "DOUBLE PRECISION"
               : "BOOLEAN",
       },
@@ -36,7 +30,7 @@ export const getColumns = async (
   const columns = await Promise.all(
     definitions
       .filter((definition): definition is Definition => definition !== null)
-      .map(getColumns),
+      .map(get_columns),
   );
 
   return columns.flat();

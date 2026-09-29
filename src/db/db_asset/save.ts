@@ -5,7 +5,7 @@ import { client } from "../client.js";
 import { db_definition } from "../db_def/main.js";
 import { insert_db_package } from "../db_package/save.js";
 import { create_asset_table } from "./create_asset_table.js";
-import { getColumns } from "./get_columns.js";
+import { get_columns } from "./get_columns.js";
 
 export const save_db_asset = async (asset: Asset): Promise<Asset> => {
   await client.query("BEGIN");
@@ -43,7 +43,7 @@ export const save_db_asset = async (asset: Asset): Promise<Asset> => {
       await Promise.all(
         definitions
           .filter((definition): definition is Definition => definition !== null)
-          .map(getColumns),
+          .map(get_columns),
       )
     ).flat();
 

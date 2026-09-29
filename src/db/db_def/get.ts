@@ -6,7 +6,7 @@ export const get_db_def = async (
 ): Promise<Definition | null> => {
   const result = await client.query(
     `
-      SELECT id, name, description, type_id
+      SELECT id, name, description, type
       FROM definitions
       WHERE id = $1
     `,
@@ -45,6 +45,6 @@ export const get_db_def = async (
     ...(definition.description !== null && {
       description: definition.description,
     }),
-    type: definition.type_id,
+    type: definition.type,
   };
 };
