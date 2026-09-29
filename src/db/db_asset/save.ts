@@ -29,18 +29,33 @@ export const insert_db_asset_definitions = async (asset: Asset) => {
   }
 };
 
+export const insert_db_instance_counters = async (asset: Asset) => {
+  await client.query(
+    `
+    INSERT INTO instance_counters (asset_id)
+    VALUES ($1)
+    `,
+    [asset.id]
+  )
+}
+
+export const insert_db_asset = async (asset: Asset) => {
+  await client.query(
+    ` 
+      INSERT INTO assets (id, name, expose_as_package)
+      VALUES ($1, $2, $3)
+    `,
+    [asset.id, asset.name, asset.exposeAsPackage ?? false]
+  )
+}
+
 export const save_db_asset = async (asset: Asset): Promise<Asset> => {
   await client.query("BEGIN");
 
   try {
-    await client.query(
-      `
-        INSERT INTO assets (id, name, expose_as_package)
-        VALUES ($1, $2, $3)
-      `,
-      [asset.id, asset.name, asset.exposeAsPackage ?? false],
-    );
-
+    
+    await insert_db_asset(asset)
+    await insert_db_instance_counters(asset)
     await insert_db_asset_definitions(asset)
 
     const definitions = await Promise.all(
