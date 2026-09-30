@@ -14,7 +14,7 @@ export const package_schema = z.object({
     .array(
       z.object({
         definition: definitionIdSchema,
-        operator: z.enum(["equal", "different", "greater", "lower"]),
+        operator: z.enum(["equal", "different", "greater", "lower", "contains"]),
         value: z.unknown(),
       }),
     )

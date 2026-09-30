@@ -29,7 +29,8 @@ export type PackageConditionOperator =
   | "equal"
   | "different"
   | "greater"
-  | "lower";
+  | "lower"
+  | "contains";
 
 export type PackageCondition = {
   definition: DefinitionId;
