@@ -9,6 +9,8 @@ import { InstanceController } from "./instance/instance.controller.js";
 import { PackageService } from "./package/package.service.js";
 import { ConsumerService } from "./consumer/consumer.service.js";
 import { InstanceService } from "./instance/instance.service.js";
+import { UserController } from "./user/user.controller.js";
+import { UserService } from "./user/user.service.js";
 
 @Module({
   controllers: [
@@ -16,14 +18,16 @@ import { InstanceService } from "./instance/instance.service.js";
     AssetController,
     PackageController,
     ConsumerController,
-    InstanceController
+    InstanceController,
+    UserController
   ],
   providers: [
     DefinitionService,
     AssetService,
     PackageService,
     ConsumerService,
-    InstanceService
+    InstanceService,
+    UserService
   ],
 })
 export class AppModule {}
