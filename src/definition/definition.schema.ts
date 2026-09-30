@@ -9,7 +9,7 @@ export const definition_schema = z.union([
     id: definitionIdSchema,
     name: z.string(),
     description: z.string().optional(),
-    type: z.enum(["string", "number", "boolean"]),
+    type: z.enum(["string", "number", "boolean", "relation"]),
   }),
 
   z.object({

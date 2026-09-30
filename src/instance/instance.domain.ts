@@ -10,3 +10,8 @@ export type Instance = {
   index: number;
   properties: Record<string, unknown>;
 };
+
+export type InstanceReference = {
+  assetId: AssetId;
+  index: number;
+};

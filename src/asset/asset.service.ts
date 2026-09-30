@@ -29,6 +29,11 @@ export class AssetService {
   getAll() {
     return get_all_assets();
   }
+
+  getDefinition(id: DefinitionId) {
+    return this.definitionService.get(id);
+  }
+  
   save(asset: Asset) {
     return save_asset(asset, this.definitionService);
   }
