@@ -2,17 +2,18 @@ import { AssetService } from "../../asset/asset.service.js";
 
 import { InstanceService } from "../../instance/instance.service.js";
 import type { PackageCondition, PackageInstance } from "../package.domain.js";
+import type { PackageService } from "../package.service.js";
 
 export const resolve_package_condition = async (
   condition: PackageCondition,
   assetService: AssetService,
-  instanceService: InstanceService,
+  packageService: PackageService
 ): Promise<PackageInstance[]> => {
   const assetIds = await assetService.getByDefs([condition.definition]);
 
   const instances = await Promise.all(
     assetIds.map((assetId) =>
-      instanceService.getByCondition(
+      packageService.selectInstancesByCondition(
         assetId,
         condition.definition,
         condition.operator,
@@ -30,11 +31,11 @@ export const resolve_package_condition = async (
 export const resolve_package_conditions = async (
   conditions: PackageCondition[],
   assetService: AssetService,
-  instanceService: InstanceService,
+  packageService: PackageService,
 ): Promise<PackageInstance[]> => {
   const resolvedConditions = await Promise.all(
     conditions.map((condition) =>
-      resolve_package_condition(condition, assetService, instanceService),
+      resolve_package_condition(condition, assetService, packageService),
     ),
   );
 

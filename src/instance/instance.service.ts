@@ -7,7 +7,6 @@ import { save_instance } from "./operations/save.js";
 import { AssetService } from "../asset/asset.service.js";
 import { delete_instance } from "./operations/delete.js";
 
-import { get_instance_by_condition } from "./operations/get_by_condition.js";
 import type { AssetId } from "../asset/asset.domain.js";
 import type {
   Instance,
@@ -34,20 +33,7 @@ export class InstanceService {
     return get_all_instances(type);
   }
 
-  getByCondition(
-  type: AssetId,
-  definitionId: DefinitionId,
-  operator: PackageConditionOperator,
-  value: unknown,
-) {
-  return get_instance_by_condition(
-    type,
-    definitionId,
-    operator,
-    value,
-    this,
-  );
-}
+ 
 
   getByIndex(type: AssetId, index: number) {
     return get_instance_by_index(type, index);

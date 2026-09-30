@@ -5,17 +5,20 @@ import {
   type PackageContent,
   type PackageId,
 } from "../package.domain.js";
+import type { PackageService } from "../package.service.js";
 import { get_package_instances } from "./get_instances.js";
 
 export const get_package_content = async (
   packageId: PackageId,
   assetService: AssetService,
   instanceService: InstanceService,
+  packageService: PackageService
 ): Promise<PackageContent> => {
   const packageInstances = await get_package_instances(
     packageId,
     assetService,
     instanceService,
+    packageService
   );
 
   const content: PackageContent = {};

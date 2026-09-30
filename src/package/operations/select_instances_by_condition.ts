@@ -1,9 +1,9 @@
 import type { AssetId } from "../../asset/asset.domain.js";
 import { client } from "../../db/client.js";
 import type { DefinitionId } from "../../definition/definition.domain.js";
-import type { PackageConditionOperator } from "../../package/package.domain.js";
-import type { InstanceService } from "../instance.service.js";
-import { parse_instance_reference } from "./parse_reference.js";
+import type { PackageConditionOperator } from "../package.domain.js";
+import type { InstanceService } from "../../instance/instance.service.js";
+import { parse_instance_reference } from "../../instance/operations/parse_reference.js";
 
 const resolve_contains_operator =  async (
   type: AssetId,
@@ -57,7 +57,7 @@ const resolve_contains_operator =  async (
 }
 
 
-export const get_instance_by_condition = async (
+export const select_instance_by_condition = async (
   type: AssetId,
   definitionId: DefinitionId,
   operator: PackageConditionOperator,
