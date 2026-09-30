@@ -3,6 +3,7 @@ import { client } from "../../db/client.js";
 
 import { InstanceService } from "../../instance/instance.service.js";
 import type { PackageId, PackageInstance } from "../package.domain.js";
+import type { PackageService } from "../package.service.js";
 import { get_package } from "./get.js";
 import { resolve_package_conditions } from "./resolve_conditions.js";
 
@@ -28,6 +29,7 @@ export const get_package_instances = async (
   packageId: PackageId,
   assetService: AssetService,
   instanceService: InstanceService,
+  packageService: PackageService
 ): Promise<PackageInstance[]> => {
   const pack = await get_package(packageId);
 
@@ -50,7 +52,7 @@ export const get_package_instances = async (
     ? await resolve_package_conditions(
         pack.conditions,
         assetService,
-        instanceService,
+        packageService,
       )
     : [];
 
