@@ -29,7 +29,7 @@ export class PackageController {
     const result = package_schema.safeParse(body);
 
     if (!result.success) {
-      throw new BadRequestException("Invalid package");
+      throw new BadRequestException(result.error);
     }
 
     return this.service.save(result.data);

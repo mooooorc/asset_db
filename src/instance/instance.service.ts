@@ -35,13 +35,19 @@ export class InstanceService {
   }
 
   getByCondition(
-    type: AssetId,
-    definitionId: DefinitionId,
-    operator: PackageConditionOperator,
-    value: unknown,
-  ) {
-    return get_instance_by_condition(type, definitionId, operator, value);
-  }
+  type: AssetId,
+  definitionId: DefinitionId,
+  operator: PackageConditionOperator,
+  value: unknown,
+) {
+  return get_instance_by_condition(
+    type,
+    definitionId,
+    operator,
+    value,
+    this,
+  );
+}
 
   getByIndex(type: AssetId, index: number) {
     return get_instance_by_index(type, index);
