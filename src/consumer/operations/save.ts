@@ -4,6 +4,8 @@ import * as argon2 from "argon2";
 
 import { client } from "../../db/client.js";
 import type { Consumer, ConsumerRegistration } from "../consumer.domain.js";
+import type { PackageId } from "../../package/package.domain.js";
+import { add_package_to_consumer } from "./add_package.js";
 
 
 
@@ -36,6 +38,13 @@ export const save_consumer = async (
       credentialHash,
     ],
   );
+
+  for (const packageId of consumer.packages) {
+    await add_package_to_consumer(
+      consumer.id,
+      packageId,
+    );
+  }
 
   return {
     consumer,
