@@ -4,8 +4,12 @@ import { client } from "../../db/client.js";
 import { randomUUID } from "node:crypto";
 import type { Instance, InstanceId } from "../instance.domain.js";
 import type { Asset, AssetId } from "../../asset/asset.domain.js";
+import type { DefinitionId } from "../../definition/definition.domain.js";
+import type { InstanceService } from "../instance.service.js";
+import { parse_instance_reference } from "./parse_reference.js";
+import { insert_instance_relation } from "./create_relation.js";
 
-type new_instance = Omit<Instance, "asset_db_id">
+type new_instance = Omit<Instance, "asset_db_id" | "index">
 
 const check_required = (asset: Asset, instance: new_instance ) => {
 
@@ -69,9 +73,36 @@ const update_instance_counter = async (asset_id: AssetId) => {
   return result.rows[0].index;
 };
 
+const split_properties = async (
+  properties: Record<string, unknown>,
+  assetService: AssetService,
+) => {
+  const normal: Record<string, unknown> = {};
+  const relations: Record<string, unknown> = {};
+
+  for (const [definitionId, value] of Object.entries(properties)) {
+    const definition = await assetService.getDefinition(
+      definitionId as DefinitionId,
+    );
+
+    if (
+      definition &&
+      "type" in definition &&
+      definition.type === "relation"
+    ) {
+      relations[definitionId] = value;
+    } else {
+      normal[definitionId] = value;
+    }
+  }
+
+  return { normal, relations };
+};
+
 export const save_instance = async (
   instance: new_instance,
-  assetService: AssetService
+  assetService: AssetService,
+  instanceService: InstanceService,
 ): Promise<Instance> => {
   const asset = await assetService.get(instance.type);
 
@@ -82,6 +113,11 @@ export const save_instance = async (
   check_required(asset, instance);
   await check_identifiable(asset, instance);
 
+  const { normal, relations } = await split_properties(
+    instance.properties,
+    assetService,
+  );
+
   const index = await update_instance_counter(instance.type);
 
   const newInstance = {
@@ -90,7 +126,7 @@ export const save_instance = async (
     index,
   };
 
-  const properties = Object.keys(newInstance.properties);
+  const properties = Object.keys(normal);
 
   const columns = ["asset_db_ID", "index", ...properties]
     .map((column) => `"${column}"`)
@@ -108,10 +144,35 @@ export const save_instance = async (
   await client.query(query, [
     newInstance.asset_db_id,
     newInstance.index,
-    ...properties.map(
-      (property) => newInstance.properties[property],
-    ),
+    ...properties.map((property) => normal[property]),
   ]);
+
+  for (const [definitionId, value] of Object.entries(relations)) {
+    if (!Array.isArray(value)) {
+      throw new Error("Relation value must be an array");
+    }
+
+    for (const reference of value) {
+      const target = parse_instance_reference(reference as string);
+
+      const targetInstance = await instanceService.getByIndex(
+        target.assetId,
+        target.index,
+      );
+
+      if (!targetInstance) {
+        throw new Error(
+          `Instance not found: ${target.assetId}#${target.index}`,
+        );
+      }
+
+      await insert_instance_relation(
+        newInstance,
+        targetInstance,
+        definitionId as DefinitionId,
+      );
+    }
+  }
 
   return newInstance;
 };

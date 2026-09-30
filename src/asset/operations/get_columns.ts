@@ -9,6 +9,9 @@ export const get_columns = async (
   definitionService: DefinitionService,
 ): Promise<Asset_table_column[]> => {
   if ("type" in definition) {
+    if (definition.type === "relation") {
+      return [];
+    }
     return [
       {
         name: definition.id,

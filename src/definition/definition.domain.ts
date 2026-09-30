@@ -2,7 +2,7 @@ export type DefinitionId = string & {
   readonly __brand: "DefinitionId";
 };
 
-export type DefinitionValueType = | "string" | "number" | "boolean"
+export type DefinitionValueType = | "string" | "number" | "boolean" | "relation"
 
 export type Definition =
   | {

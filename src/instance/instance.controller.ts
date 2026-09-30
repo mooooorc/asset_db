@@ -15,6 +15,7 @@ import { instance_schema } from "./instance.schema.js";
 import type { AssetId } from "../asset/asset.domain.js";
 import type { InstanceId } from "./instance.domain.js";
 
+
 @Controller("instances")
 export class InstanceController {
   constructor(
@@ -40,7 +41,10 @@ export class InstanceController {
 
   @Get(":type/:id")
   async get(@Param("type") type: string, @Param("id") id: string) {
-    const instance = await this.service.get(type as AssetId, id as InstanceId);
+    const instance = await this.service.get(
+      type as AssetId,
+      id as InstanceId,
+    );
 
     if (!instance) {
       throw new NotFoundException("Instance not found");
