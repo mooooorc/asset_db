@@ -1,10 +1,11 @@
 import { client } from "../../db/client.js";
-import type { ConsumerId } from "../consumer.domain.js";
+import type { PackageId } from "../../package/package.domain.js";
+import type { Consumer, ConsumerId } from "../consumer.domain.js";
 
 
 export const get_consumer = async (
   id: ConsumerId,
-) => {
+): Promise<Consumer | null> => {
   const result = await client.query(
     `
       SELECT id, name
@@ -18,8 +19,20 @@ export const get_consumer = async (
     return null;
   }
 
+  const packagesResult = await client.query(
+    `
+      SELECT package_id
+      FROM consumer_packages
+      WHERE consumer_id = $1
+    `,
+    [id],
+  );
+
   return {
     id: result.rows[0].id as ConsumerId,
     name: result.rows[0].name,
+    packages: packagesResult.rows.map(
+      (row) => row.package_id as PackageId,
+    ),
   };
 };

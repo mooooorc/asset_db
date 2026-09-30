@@ -2,6 +2,8 @@ import { client } from "../../db/client.js";
 
 import * as argon2 from "argon2";
 import type { Consumer } from "../consumer.domain.js";
+import type { PackageId } from "../../package/package.domain.js";
+
 
 export const verify_consumer = async (
   credential: string,
@@ -20,9 +22,21 @@ export const verify_consumer = async (
     );
 
     if (valid) {
+      const packagesResult = await client.query(
+        `
+          SELECT package_id
+          FROM consumer_packages
+          WHERE consumer_id = $1
+        `,
+        [row.id],
+      );
+
       return {
         id: row.id,
         name: row.name,
+        packages: packagesResult.rows.map(
+          (row) => row.package_id as PackageId,
+        ),
       };
     }
   }

@@ -1,8 +1,10 @@
 import {
   type CanActivate,
   type ExecutionContext,
+  ForbiddenException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ConsumerService } from "./consumer.service.js";
 
@@ -19,13 +21,23 @@ export class ConsumerGuard implements CanActivate {
     const authorization = request.headers.authorization;
 
     if (!authorization?.startsWith("Bearer ")) {
-      return false;
+      throw new UnauthorizedException();
     }
 
     const credential = authorization.slice(7);
 
     const consumer = await this.consumerService.verify(credential);
 
-    return consumer !== null;
+    if (!consumer) {
+      throw new UnauthorizedException();
+    }
+
+    const packageId = request.params.id;
+
+    if (!consumer.packages.includes(packageId)) {
+      throw new ForbiddenException();
+    }
+
+    return true;
   }
 }
