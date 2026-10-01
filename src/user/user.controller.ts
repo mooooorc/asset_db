@@ -8,6 +8,7 @@ import {
   Param,
   Delete,
   ForbiddenException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { UserService } from "./user.service.js";
 import { user_schema } from "./user.schema.js";
@@ -53,5 +54,30 @@ export class UserController {
     }
 
     return this.service.delete(id as UserId);
+  }
+
+  @Post(":id/consumers")
+  async associateToConsumer(
+    @Param("id") id: string,
+    @Body() body: { credential: string },
+    @CurrentUser() user: User,
+  ) {
+    if (user.id !== id) {
+      throw new ForbiddenException();
+    }
+    if (user.role !== "Viewer") {
+    throw new ForbiddenException();
+  }
+
+    const associated = await this.service.associateToConsumer(
+      user.id,
+      body.credential,
+    );
+
+    if (!associated) {
+      throw new UnauthorizedException("Invalid consumer credential");
+    }
+
+    return;
   }
 }
