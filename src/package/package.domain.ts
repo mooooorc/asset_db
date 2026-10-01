@@ -11,6 +11,7 @@ export type Package = {
   name: string;
   linkedAsset?: AssetId;
   conditions?: PackageCondition[];
+  blacklist?: PackageInstance[];
 };
 
 export type PublicPackage = {
