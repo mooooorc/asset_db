@@ -16,7 +16,8 @@ export class CredentialsService {
           id,
           name,
           email,
-          password_hash
+          password_hash,
+          role
         FROM users
         WHERE email = $1
       `,
@@ -42,6 +43,7 @@ export class CredentialsService {
       id: row.id as UserId,
       name: row.name,
       email: row.email,
+      role: row.role,
     };
   }
 }

@@ -18,6 +18,10 @@ export class ConsumerGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
+    if (request.user?.role === "Manager") {
+      return true;
+    }
+
     const authorization = request.headers.authorization;
 
     if (!authorization?.startsWith("Bearer ")) {

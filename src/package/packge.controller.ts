@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Inject,
   NotFoundException,
@@ -16,7 +17,8 @@ import { package_schema } from "./package.schema.js";
 import { PackageService } from "./package.service.js";
 import type { PackageId, PackageInstance } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
-import { Public } from "@nestjs/authentication";
+import { Authenticate, CurrentUser, Public } from "@nestjs/authentication";
+import type { User } from "../user/user.domain.js";
 
 @Controller("packages")
 export class PackageController {
@@ -37,12 +39,16 @@ export class PackageController {
   }
 
   @Get()
-  async getAll() {
+  async getAll(@CurrentUser() user: User) {
+    if (user.role !== "Manager") {
+      throw new ForbiddenException();
+    }
+
     return this.service.getAll();
   }
 
   @Get(":id")
-  @Public()
+  @Authenticate({ optional: true })
   @UseGuards(ConsumerGuard)
   async get(@Param("id") id: string) {
     const pack = await this.service.prepare(id as PackageId);
@@ -55,14 +61,25 @@ export class PackageController {
   }
 
   @Post(":id/instances")
-  async addInstance(@Param("id") id: string, @Body() body: PackageInstance) {
+  async addInstance(
+    @Param("id") id: string,
+    @Body() body: PackageInstance,
+    @CurrentUser() user: User,
+  ) {
+    if (user.role !== "Manager") {
+      throw new ForbiddenException();
+    }
+
     return this.service.addInstance(id as PackageId, body);
   }
 
   @Delete(":id")
-  async delete(@Param("id") id: string) {
-    await this.service.delete(id as PackageId);
+  async delete(@Param("id") id: string, @CurrentUser() user: User) {
+    if (user.role !== "Manager") {
+      throw new ForbiddenException();
+    }
 
+    await this.service.delete(id as PackageId);
     return;
   }
 }
