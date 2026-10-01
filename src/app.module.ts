@@ -14,6 +14,10 @@ import { AuthenticationModule } from "@nestjs/authentication";
 import { AuthModule } from "./user/auth/auth.module.js";
 import { UserModule } from "./user/user.module.js";
 import { ConsumerModule } from "./consumer/consumer.module.js";
+import { DefinitionModule } from "./definition/definition.module.js";
+import { AssetModule } from "./asset/asset.module.js";
+import { InstanceModule } from "./instance/instance.module.js";
+import { PackageModule } from "./package/package.module.js";
 
 @Module({
   imports: [
@@ -26,20 +30,11 @@ import { ConsumerModule } from "./consumer/consumer.module.js";
     UserModule,
     AuthModule,
     ConsumerModule,
+    DefinitionModule,
+    AssetModule,
+    InstanceModule,
+    PackageModule
 
-  ],
-  controllers: [
-    DefinitionController,
-    AssetController,
-    PackageController,
-  
-    InstanceController,
-  ],
-  providers: [
-    DefinitionService,
-    AssetService,
-    PackageService,
-    InstanceService,
-  ],
+  ]
 })
 export class AppModule {}
