@@ -16,6 +16,7 @@ import { package_schema } from "./package.schema.js";
 import { PackageService } from "./package.service.js";
 import type { PackageId, PackageInstance } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
+import { Public } from "@nestjs/authentication";
 
 @Controller("packages")
 export class PackageController {
@@ -41,6 +42,7 @@ export class PackageController {
   }
 
   @Get(":id")
+  @Public()
   @UseGuards(ConsumerGuard)
   async get(@Param("id") id: string) {
     const pack = await this.service.prepare(id as PackageId);
