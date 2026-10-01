@@ -1,7 +1,7 @@
 import { client } from "../../db/client.js";
 import type { User, UserId } from "../user.domain.js";
 
-export const get_all_users = async (): Promise<Omit<User, "password_hash">[]> => {
+export const get_all_users = async (): Promise<User[]> => {
   const result = await client.query(
     `
       SELECT
