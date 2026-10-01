@@ -4,6 +4,7 @@ import { client } from "../../db/client.js";
 import { InstanceService } from "../../instance/instance.service.js";
 import type { PackageId, PackageInstance } from "../package.domain.js";
 import type { PackageService } from "../package.service.js";
+import { get_package_blacklist } from "./blacklist/get.js";
 import { get_package } from "./get.js";
 import { resolve_package_conditions } from "./resolve_conditions.js";
 
@@ -29,7 +30,7 @@ export const get_package_instances = async (
   packageId: PackageId,
   assetService: AssetService,
   instanceService: InstanceService,
-  packageService: PackageService
+  packageService: PackageService,
 ): Promise<PackageInstance[]> => {
   const pack = await get_package(packageId);
 
@@ -62,12 +63,23 @@ export const get_package_instances = async (
     ...conditionInstances,
   ];
 
-  return Array.from(
+  const uniqueInstances = Array.from(
     new Map(
       instances.map((instance) => [
         `${instance.assetId}:${instance.instanceId}`,
         instance,
       ]),
     ).values(),
+  );
+
+  const blacklist = await get_package_blacklist(packageId);
+
+  return uniqueInstances.filter(
+    (instance) =>
+      !blacklist.some(
+        (blacklisted) =>
+          blacklisted.assetId === instance.assetId &&
+          blacklisted.instanceId === instance.instanceId,
+      ),
   );
 };
