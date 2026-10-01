@@ -7,10 +7,12 @@ import {
   Get,
   Param,
   Delete,
+  ForbiddenException,
 } from "@nestjs/common";
 import { UserService } from "./user.service.js";
 import { user_schema } from "./user.schema.js";
-import type { UserId } from "./user.domain.js";
+import type { User, UserId } from "./user.domain.js";
+import { CurrentUser } from "@nestjs/authentication";
 
 @Controller("users")
 export class UserController {
@@ -20,7 +22,11 @@ export class UserController {
   ) {}
 
   @Post()
-  async create(@Body() body: unknown) {
+  async create(@Body() body: unknown, @CurrentUser() user: User) {
+    if (user.role !== "Manager") {
+      throw new ForbiddenException();
+    }
+
     const result = user_schema.safeParse(body);
 
     if (!result.success) {
@@ -41,7 +47,11 @@ export class UserController {
   }
 
   @Delete(":id")
-  delete(@Param("id") id: string) {
+  delete(@Param("id") id: string, @CurrentUser() user: User) {
+    if (user.id !== id) {
+      throw new ForbiddenException();
+    }
+
     return this.service.delete(id as UserId);
   }
 }

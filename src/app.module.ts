@@ -9,8 +9,7 @@ import { InstanceController } from "./instance/instance.controller.js";
 import { PackageService } from "./package/package.service.js";
 import { ConsumerService } from "./consumer/consumer.service.js";
 import { InstanceService } from "./instance/instance.service.js";
-import { UserController } from "./user/user.controller.js";
-import { UserService } from "./user/user.service.js";
+
 import { AuthenticationModule } from "@nestjs/authentication";
 import { AuthModule } from "./user/auth/auth.module.js";
 import { UserModule } from "./user/user.module.js";

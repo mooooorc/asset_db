@@ -6,10 +6,7 @@ import {
   Post,
   UnauthorizedException,
 } from "@nestjs/common";
-import {
-  Public,
-  SignInService,
-} from "@nestjs/authentication";
+import { Public, SignInService } from "@nestjs/authentication";
 import { CredentialsService } from "./credentials.service.js";
 
 @Public()
@@ -38,17 +35,12 @@ export class AuthController {
     );
 
     if (!user) {
-      throw new UnauthorizedException(
-        "Invalid email or password",
-      );
+      throw new UnauthorizedException("Invalid email or password");
     }
 
-    const { session } = await this.signInService.signIn(
-      user.id,
-      {
-        method: "password",
-      },
-    );
+    const { session } = await this.signInService.signIn(user.id, {
+      method: "password",
+    });
 
     return {
       mfaRequired: session.mfa === "pending",

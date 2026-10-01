@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "migrate": "tsx src/migrations/migrate.ts",
-    "nest": "tsx src/main.ts"
+    "nest": "tsx src/main.ts",
+    "bootstrap": "tsx src/user/bootstrap.ts"
   },
   "keywords": [],
   "author": "",

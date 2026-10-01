@@ -7,7 +7,7 @@ import type { NewUser, User, UserId } from "../user.domain.js";
 
 export const save_user = async (
   data: NewUser,
-): Promise<Omit<User, "password_hash">> => {
+): Promise<User> => {
   const id = randomUUID() as UserId;
   const password_hash = await argon2.hash(data.password);
 
@@ -17,15 +17,17 @@ export const save_user = async (
         id,
         name,
         email,
-        password_hash
+        password_hash,
+        role
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
     `,
     [
       id,
       data.name,
       data.email,
       password_hash,
+      "Viewer",
     ],
   );
 
@@ -33,5 +35,6 @@ export const save_user = async (
     id,
     name: data.name,
     email: data.email,
+    role: "Viewer",
   };
 };
