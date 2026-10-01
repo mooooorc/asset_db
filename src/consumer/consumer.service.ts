@@ -8,6 +8,7 @@ import { delete_consumer } from "./operations/delete.js";
 import type { Consumer, ConsumerId } from "./consumer.domain.js";
 import type { PackageId } from "../package/package.domain.js";
 import { add_package_to_consumer } from "./operations/add_package.js";
+import { has_package_access } from "./operations/has_package_access.js";
 
 @Injectable()
 export class ConsumerService {
@@ -34,4 +35,11 @@ export class ConsumerService {
   delete(id: ConsumerId) {
     return delete_consumer(id);
   }
+
+  hasPackageAccess(
+  consumerIds: ConsumerId[],
+  packageId: PackageId,
+) {
+  return has_package_access(consumerIds, packageId);
+}
 }

@@ -13,6 +13,7 @@ import { InstanceService } from "./instance/instance.service.js";
 import { AuthenticationModule } from "@nestjs/authentication";
 import { AuthModule } from "./user/auth/auth.module.js";
 import { UserModule } from "./user/user.module.js";
+import { ConsumerModule } from "./consumer/consumer.module.js";
 
 @Module({
   imports: [
@@ -24,19 +25,20 @@ import { UserModule } from "./user/user.module.js";
     }),
     UserModule,
     AuthModule,
+    ConsumerModule,
+
   ],
   controllers: [
     DefinitionController,
     AssetController,
     PackageController,
-    ConsumerController,
+  
     InstanceController,
   ],
   providers: [
     DefinitionService,
     AssetService,
     PackageService,
-    ConsumerService,
     InstanceService,
   ],
 })
