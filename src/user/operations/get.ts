@@ -3,7 +3,7 @@ import type { User, UserId } from "../user.domain.js";
 
 export const get_user = async (
   id: UserId,
-): Promise<Omit<User, "password_hash"> | null> => {
+): Promise<User | null> => {
   const result = await client.query(
     `
       SELECT
