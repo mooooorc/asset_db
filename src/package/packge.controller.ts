@@ -17,10 +17,11 @@ import { package_schema } from "./package.schema.js";
 import { PackageService } from "./package.service.js";
 import type { PackageId, PackageInstance } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
-import { Authenticate} from "@nestjs/authentication";
+import { Authenticate } from "@nestjs/authentication";
 
 import { DiscussionService } from "../discussion/discussion.service.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
+import type { DiscussionId } from "../discussion/discussion.domain.js";
 
 @Controller("packages")
 export class PackageController {
@@ -92,10 +93,7 @@ export class PackageController {
   @Post(":id/instances")
   @UseGuards(RolesGuard)
   @Roles("Manager")
-  async addInstance(
-    @Param("id") id: string,
-    @Body() body: PackageInstance,
-  ) {
+  async addInstance(@Param("id") id: string, @Body() body: PackageInstance) {
     return this.service.addInstance(id as PackageId, body);
   }
 
@@ -117,10 +115,7 @@ export class PackageController {
   @Post(":id/blacklist")
   @UseGuards(RolesGuard)
   @Roles("Manager")
-  async addToBlacklist(
-    @Param("id") id: string,
-    @Body() body: PackageInstance,
-  ) {
+  async addToBlacklist(@Param("id") id: string, @Body() body: PackageInstance) {
     return this.service.addToBlacklist(id as PackageId, body);
   }
 
@@ -147,5 +142,17 @@ export class PackageController {
   @Get(":id/discussions")
   async getDiscussions(@Param("id") id: string) {
     return this.discussionService.getByPackage(id as PackageId);
+  }
+
+  /**
+   * Returns the supporters of a Discussion within a Package context.
+   *
+   * Access follows the Package access rules.
+   */
+  @Authenticate({ optional: true })
+  @UseGuards(ConsumerGuard)
+  @Get(":id/discussions/:discussionId/supports")
+  async getDiscussionSupports(@Param("discussionId") discussionId: string) {
+    return this.discussionService.getSupports(discussionId as DiscussionId);
   }
 }
