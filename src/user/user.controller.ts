@@ -9,11 +9,13 @@ import {
   Delete,
   ForbiddenException,
   UnauthorizedException,
+  UseGuards,
 } from "@nestjs/common";
 import { UserService } from "./user.service.js";
 import { user_schema } from "./user.schema.js";
 import type { User, UserId } from "./user.domain.js";
 import { CurrentUser } from "@nestjs/authentication";
+import { Roles, RolesGuard } from "./auth/roles.guard.js";
 
 @Controller("users")
 export class UserController {
@@ -22,12 +24,14 @@ export class UserController {
     private readonly service: UserService,
   ) {}
 
+  /**
+   * Creates a new user.
+   * Only Managers can create users.
+   */
   @Post()
-  async create(@Body() body: unknown, @CurrentUser() user: User) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async create(@Body() body: unknown) {
     const result = user_schema.safeParse(body);
 
     if (!result.success) {
@@ -37,40 +41,84 @@ export class UserController {
     return this.service.save(result.data);
   }
 
-  @Get(":id")
-  get(@Param("id") id: string) {
-    return this.service.get(id as UserId);
+  /**
+   * Returns the authenticated user.
+   */
+  @Get("me")
+  getMe(@CurrentUser() user: User) {
+    return user;
   }
 
+  /**
+   * Returns all users.
+   */
   @Get()
   getAll() {
     return this.service.getAll();
   }
 
-  @Delete(":id")
-  delete(@Param("id") id: string, @CurrentUser() user: User) {
-    if (user.id !== id) {
-      throw new ForbiddenException();
-    }
+  /**
+   * Returns a user by ID.
+   */
+  @Get(":id")
+  get(@Param("id") id: string) {
+    return this.service.get(id as UserId);
+  }
 
+  /**
+   * Deletes the authenticated user.
+   */
+  @Delete("me")
+  deleteMe(@CurrentUser() user: User) {
+    return this.service.delete(user.id);
+  }
+
+  /**
+   * Deletes a user by ID.
+   * Only Managers can access this endpoint.
+   */
+  @Delete(":id")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  delete(@Param("id") id: string) {
     return this.service.delete(id as UserId);
   }
 
-  @Post(":id/consumers")
-  async associateToConsumer(
-    @Param("id") id: string,
+  /**
+   * Associates the authenticated Viewer with a Consumer.
+   */
+  @Post("me/consumers")
+  @UseGuards(RolesGuard)
+  @Roles("Viewer")
+  async associateMeToConsumer(
     @Body() body: { credential: string },
     @CurrentUser() user: User,
   ) {
-    if (user.id !== id) {
-      throw new ForbiddenException();
-    }
-    if (user.role !== "Viewer") {
-    throw new ForbiddenException();
-  }
-
     const associated = await this.service.associateToConsumer(
       user.id,
+      body.credential,
+    );
+
+    if (!associated) {
+      throw new UnauthorizedException("Invalid consumer credential");
+    }
+
+    return;
+  }
+
+  /**
+   * Associates a user with a Consumer.
+   * Only Managers can access this endpoint.
+   */
+  @Post(":id/consumers")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async associateToConsumer(
+    @Param("id") id: string,
+    @Body() body: { credential: string },
+  ) {
+    const associated = await this.service.associateToConsumer(
+      id as UserId,
       body.credential,
     );
 
