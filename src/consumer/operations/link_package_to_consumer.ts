@@ -2,7 +2,7 @@ import { client } from "../../db/client.js";
 import type { PackageId } from "../../package/package.domain.js";
 import type { ConsumerId } from "../consumer.domain.js";
 
-export const add_package_to_consumer = async (
+export const link_package_to_consumer = async (
   consumerId: ConsumerId,
   packageId: PackageId,
 ): Promise<void> => {
