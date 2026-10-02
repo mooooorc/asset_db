@@ -8,7 +8,8 @@ export const get_all_discussions = async (): Promise<Discussion[]> => {
       package_id,
       index,
       title,
-      author_id
+      author_id,
+      consumer_id
     FROM discussions
     ORDER BY package_id, index
   `);
@@ -19,5 +20,6 @@ export const get_all_discussions = async (): Promise<Discussion[]> => {
     index: row.index,
     title: row.title,
     author: row.author_id,
+    consumer: row.consumer_id
   }));
 };

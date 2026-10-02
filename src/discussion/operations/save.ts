@@ -41,9 +41,10 @@ export const save_discussion = async (
         package_id,
         index,
         title,
-        author_id
+        author_id,
+        consumer_id
       )
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `,
     [
       newDiscussion.id,
@@ -51,6 +52,7 @@ export const save_discussion = async (
       newDiscussion.index,
       newDiscussion.title,
       newDiscussion.author,
+      newDiscussion.consumer
     ],
   );
 

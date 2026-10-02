@@ -1,3 +1,4 @@
+import type { ConsumerId } from "../consumer/consumer.domain.js";
 import type { PackageId } from "../package/package.domain.js";
 import type { UserId } from "../user/user.domain.js";
 
@@ -11,10 +12,12 @@ export type Discussion = {
   index: number;
   title: string;
   author: UserId;
+  consumer?: ConsumerId;
 };
 
 export type NewDiscussion = {
   package: PackageId;
   title: string;
   author: UserId;
+  consumer?: ConsumerId;
 };
