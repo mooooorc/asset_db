@@ -11,7 +11,8 @@ export const get_discussion = async (
         package_id,
         index,
         title,
-        author_id
+        author_id,
+        consumer_id
       FROM discussions
       WHERE id = $1
     `,
@@ -30,5 +31,6 @@ export const get_discussion = async (
     index: row.index,
     title: row.title,
     author: row.author_id,
+    consumer: row.consumer_id
   };
 };

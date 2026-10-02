@@ -4,7 +4,7 @@ import { packageIdSchema } from "../package/package.schema.js";
 
 
 
-const consumerIdSchema = z.string().transform((id) => id as ConsumerId);
+export const consumerIdSchema = z.string().transform((id) => id as ConsumerId);
 
 export const consumer_schema = z.object({
   id: consumerIdSchema,

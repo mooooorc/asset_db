@@ -4,6 +4,7 @@ CREATE TABLE discussions (
     index BIGINT NOT NULL,
     title TEXT NOT NULL,
     author_id UUID NOT NULL REFERENCES users(id),
+    consumer_id TEXT REFERENCES consumers(id),
     UNIQUE (package_id, index)
 );
 

@@ -12,7 +12,8 @@ export const get_discussions_by_package = async (
         package_id,
         index,
         title,
-        author_id
+        author_id,
+        consumer_id
       FROM discussions
       WHERE package_id = $1
       ORDER BY index
@@ -26,5 +27,6 @@ export const get_discussions_by_package = async (
     index: row.index,
     title: row.title,
     author: row.author_id,
+    consumer: row.consumer_id
   }));
 };
