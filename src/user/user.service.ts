@@ -5,9 +5,11 @@ import { save_user } from "./operations/save.js";
 import { get_user } from "./operations/get.js";
 import { get_all_users } from "./operations/get_all.js";
 import { delete_user } from "./operations/delete.js";
-import { associate_user_to_consumer } from "./operations/associate_consumer.js";
+import { link_user_to_consumer } from "./operations/link_to_consumer.js";
 import { ConsumerService } from "../consumer/consumer.service.js";
 import { get_user_consumers } from "./operations/get_user_consumers.js";
+import type { ConsumerId } from "../consumer/consumer.domain.js";
+import { unlink_user_from_consumer } from "./operations/unlink_from_consumer.js";
 
 @Injectable()
 export class UserService {
@@ -32,8 +34,12 @@ export class UserService {
     return delete_user(id);
   }
 
-  associateToConsumer(userId: UserId, credential: string) {
-    return associate_user_to_consumer(userId, credential, this.consumerService);
+  linkToConsumer(userId: UserId, consumerId: ConsumerId) {
+    return link_user_to_consumer(userId, consumerId);
+  }
+
+  unlinkFromConsumer(userId: UserId, consumerId: ConsumerId) {
+    return unlink_user_from_consumer(userId, consumerId)
   }
 
   getConsumers(userId: UserId) {
