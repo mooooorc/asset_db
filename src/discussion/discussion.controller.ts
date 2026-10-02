@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Inject,
@@ -34,48 +35,48 @@ export class DiscussionController {
   ) {}
 
   /**
- * Creates a new Discussion.
- * Viewers can only create Discussions for Packages they can access.
- */
-@Post()
-async create(@Body() body: unknown, @CurrentUser() user: User) {
-  const result = discussion_schema.safeParse(body);
+   * Creates a new Discussion.
+   * Viewers can only create Discussions for Packages they can access.
+   */
+  @Post()
+  async create(@Body() body: unknown, @CurrentUser() user: User) {
+    const result = discussion_schema.safeParse(body);
 
-  if (!result.success) {
-    throw new BadRequestException(result.error);
+    if (!result.success) {
+      throw new BadRequestException(result.error);
+    }
+
+    const packageId = result.data.package as PackageId;
+    const consumerId = result.data.consumer as ConsumerId;
+
+    if (user.role === "Viewer") {
+      if (!consumerId) {
+        throw new BadRequestException("Consumer is required");
+      }
+
+      const consumerIds = await this.userService.getConsumers(user.id);
+
+      if (!consumerIds.includes(consumerId)) {
+        throw new ForbiddenException();
+      }
+
+      const hasAccess = await this.consumerService.hasPackageAccess(
+        [consumerId],
+        packageId,
+      );
+
+      if (!hasAccess) {
+        throw new ForbiddenException();
+      }
+    }
+
+    return this.service.save({
+      ...result.data,
+      package: packageId,
+      author: user.id,
+      consumer: consumerId,
+    });
   }
-
-  const packageId = result.data.package as PackageId;
-  const consumerId = result.data.consumer as ConsumerId;
-
-  if (user.role === "Viewer") {
-    if (!consumerId) {
-      throw new BadRequestException("Consumer is required");
-    }
-
-    const consumerIds = await this.userService.getConsumers(user.id);
-
-    if (!consumerIds.includes(consumerId)) {
-      throw new ForbiddenException();
-    }
-
-    const hasAccess = await this.consumerService.hasPackageAccess(
-      [consumerId],
-      packageId,
-    );
-
-    if (!hasAccess) {
-      throw new ForbiddenException();
-    }
-  }
-
-  return this.service.save({
-    ...result.data,
-    package: packageId,
-    author: user.id,
-    consumer: consumerId,
-  });
-}
 
   /**
    * Returns all Discussions.
@@ -103,5 +104,26 @@ async create(@Body() body: unknown, @CurrentUser() user: User) {
     }
 
     return discussion;
+  }
+
+  /**
+   * Deletes a Discussion by ID.
+   * Only Managers and the discussion author can access this endpoint.
+   */
+  @Delete(":id")
+  async delete(@Param("id") id: string, @CurrentUser() user: User) {
+    const discussion = await this.service.get(id as DiscussionId);
+
+    if (!discussion) {
+      throw new NotFoundException("Discussion not found");
+    }
+
+    if (user.role !== "Manager" && discussion.author !== user.id) {
+      throw new ForbiddenException();
+    }
+
+    await this.service.delete(id as DiscussionId);
+
+    return;
   }
 }
