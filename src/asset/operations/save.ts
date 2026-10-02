@@ -3,7 +3,10 @@ import type { Definition } from "../../definition/definition.domain.js";
 
 import { DefinitionService } from "../../definition/definition.service.js";
 
-import { insert_package } from "../../package/operations/save.js";
+import {
+  insert_discussion_counter,
+  insert_package,
+} from "../../package/operations/save.js";
 import type { PackageId } from "../../package/package.domain.js";
 import type { Asset } from "../asset.domain.js";
 import { create_asset_table } from "./create_table.js";
@@ -79,11 +82,14 @@ export const save_asset = async (
     await create_asset_table(asset, columns);
 
     if (asset.exposeAsPackage) {
-      await insert_package({
+      const pack = {
         id: asset.id as unknown as PackageId,
         name: asset.name,
         linkedAsset: asset.id,
-      });
+      };
+
+      await insert_package(pack);
+      await insert_discussion_counter(pack.id);
     }
 
     await client.query("COMMIT");

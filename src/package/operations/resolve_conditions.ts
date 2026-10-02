@@ -1,6 +1,5 @@
 import { AssetService } from "../../asset/asset.service.js";
 
-import { InstanceService } from "../../instance/instance.service.js";
 import type { PackageCondition, PackageInstance } from "../package.domain.js";
 import type { PackageService } from "../package.service.js";
 
