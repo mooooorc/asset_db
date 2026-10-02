@@ -2,8 +2,7 @@ import type { AssetId } from "../../asset/asset.domain.js";
 import { client } from "../../db/client.js";
 import type { DefinitionId } from "../../definition/definition.domain.js";
 import type { Instance, InstanceReference } from "../instance.domain.js";
-import type { InstanceService } from "../instance.service.js";
-import { parse_instance_reference } from "./parse_reference.js";
+
 
 export const insert_instance_relation = async (
   instanceA: Instance,

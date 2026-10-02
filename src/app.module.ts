@@ -18,6 +18,7 @@ import { DefinitionModule } from "./definition/definition.module.js";
 import { AssetModule } from "./asset/asset.module.js";
 import { InstanceModule } from "./instance/instance.module.js";
 import { PackageModule } from "./package/package.module.js";
+import { DiscussionModule } from "./discussion/discussion.module.js";
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { PackageModule } from "./package/package.module.js";
     DefinitionModule,
     AssetModule,
     InstanceModule,
-    PackageModule
+    PackageModule,
+    DiscussionModule
 
   ]
 })
