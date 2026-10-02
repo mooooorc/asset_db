@@ -18,7 +18,7 @@ export const save_user = async (
         name,
         email,
         password_hash,
-        role
+        roles
       )
       VALUES ($1, $2, $3, $4, $5)
     `,
@@ -27,7 +27,7 @@ export const save_user = async (
       data.name,
       data.email,
       password_hash,
-      "Viewer",
+      data.roles,
     ],
   );
 
@@ -35,6 +35,6 @@ export const save_user = async (
     id,
     name: data.name,
     email: data.email,
-    role: "Viewer",
+    roles: data.roles,
   };
 };

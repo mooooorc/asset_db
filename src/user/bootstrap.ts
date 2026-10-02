@@ -40,7 +40,7 @@ try {
         name,
         email,
         password_hash,
-        role
+        roles
       )
       VALUES ($1, $2, $3, $4, $5)
     `,
@@ -49,11 +49,11 @@ try {
       name,
       email,
       passwordHash,
-      "Manager",
+      ["Admin", "Builder"],
     ],
   );
 
-  console.log(`Manager created: ${email}`);
+  console.log(`Admin + Builder created: ${email}`);
 } finally {
   readline.close();
   await disconnect();

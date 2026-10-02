@@ -3,18 +3,20 @@ export type UserId = string & {
 };
 
 export type UserRole =
-  | "Manager"
-  | "Viewer";
+  | "Viewer"
+  | "Admin"
+  | "Builder";
 
 export type NewUser = {
   name: string;
   email: string;
   password: string;
+  roles: UserRole[];
 };
 
 export type User = {
   id: UserId;
   name: string;
   email: string;
-  role: UserRole;
+  roles: UserRole[];
 };

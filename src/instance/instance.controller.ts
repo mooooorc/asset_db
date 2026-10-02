@@ -27,11 +27,11 @@ export class InstanceController {
 
   /**
    * Creates a new Instance.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async create(@Body() body: unknown) {
     const result = instance_schema.safeParse(body);
 
@@ -44,22 +44,22 @@ export class InstanceController {
 
   /**
    * Returns all Instances of an Asset.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get(":type")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getAll(@Param("type") type: string) {
     return this.service.getAll(type as AssetId);
   }
 
   /**
    * Returns an Instance by Asset type and ID.
-   * Only Managers can access this endpoint.
+   * Only Builder can access this endpoint.
    */
   @Get(":type/:id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async get(
     @Param("type") type: string,
     @Param("id") id: string,
@@ -78,11 +78,11 @@ export class InstanceController {
 
   /**
    * Deletes an Instance by Asset type and ID.
-   * Only Managers can access this endpoint.
+   * Only Builder can access this endpoint.
    */
   @Delete(":type/:id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async delete(
     @Param("type") type: string,
     @Param("id") id: string,

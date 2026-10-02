@@ -27,11 +27,11 @@ export class ConsumerController {
 
   /**
    * Creates a new Consumer.
-   * Only Managers can access this endpoint.
+   * Only Admins can access this endpoint.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Admin")
   async create(@Body() body: unknown) {
     const result = consumer_schema.safeParse(body);
 
@@ -44,7 +44,7 @@ export class ConsumerController {
 
   /**
    * Returns all Consumers.
-   * Accessible to Managers and Viewers.
+   * Accessible to Admins, Builders and Viewers.
    */
   @Get()
   async getAll() {
@@ -53,7 +53,7 @@ export class ConsumerController {
 
   /**
    * Returns a Consumer by ID.
-   * Accessible to Managers and Viewers.
+   * Accessible to Admins, Builders and Viewers.
    */
   @Get(":id")
   async get(@Param("id") id: string) {
@@ -68,11 +68,11 @@ export class ConsumerController {
 
   /**
    * Deletes a Consumer by ID.
-   * Only Managers can access this endpoint.
+   * Only Admins can access this endpoint.
    */
   @Delete(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Admin")
   async delete(@Param("id") id: string) {
     await this.service.delete(id as ConsumerId);
 

@@ -7,4 +7,6 @@ export const user_schema = z.object({
   name: z.string(),
   email: z.email(),
   password: z.string(),
+  roles: z.array(z.enum([ "Viewer", "Admin", "Builder"])),
+
 });

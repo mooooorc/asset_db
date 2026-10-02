@@ -3,5 +3,5 @@ CREATE TABLE users (
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'Viewer'
+    roles TEXT[] NOT NULL DEFAULT ARRAY['Viewer']
 );

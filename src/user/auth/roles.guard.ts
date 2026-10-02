@@ -10,14 +10,13 @@ export const Roles = (...roles: UserRole[]) =>
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-
   constructor(
     @Inject(Reflector)
-    private readonly reflector: Reflector
-) {}
+    private readonly reflector: Reflector,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+    const roles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -29,7 +28,10 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as User | undefined;
 
-    if (!user || !roles.includes(user.role)) {
+    if (
+      !user ||
+      !roles.every((role) => user.roles.includes(role))
+    ) {
       throw new ForbiddenException();
     }
 

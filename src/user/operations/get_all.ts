@@ -8,7 +8,7 @@ export const get_all_users = async (): Promise<User[]> => {
         id,
         name,
         email,
-        role
+        roles
       FROM users
       ORDER BY id
     `,
@@ -18,6 +18,6 @@ export const get_all_users = async (): Promise<User[]> => {
     id: row.id as UserId,
     name: row.name,
     email: row.email,
-    role: row.role
+    roles: row.roles
   }));
 };

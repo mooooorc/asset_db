@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Inject,
   NotFoundException,
@@ -27,11 +26,11 @@ export class AssetController {
 
   /**
    * Creates a new Asset.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async create(@Body() body: unknown) {
     const result = asset_schema.safeParse(body);
 
@@ -44,22 +43,22 @@ export class AssetController {
 
   /**
    * Returns all Assets.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getAll() {
     return this.service.getAll();
   }
 
   /**
    * Returns an Asset by ID.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async get(@Param("id") id: string) {
     const asset = await this.service.get(id as AssetId);
 
@@ -72,11 +71,11 @@ export class AssetController {
 
   /**
    * Deletes an Asset by ID.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Delete(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async delete(@Param("id") id: string) {
     await this.service.delete(id as AssetId);
 
