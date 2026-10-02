@@ -5,6 +5,7 @@ import { get_all_discussions } from "./operations/get_all.js";
 import { get_discussion } from "./operations/get.js";
 import type { PackageId } from "../package/package.domain.js";
 import { get_discussions_by_package } from "./operations/get_by_package.js";
+import { delete_discussion } from "./operations/delete.js";
 
 @Injectable()
 export class DiscussionService {
@@ -22,4 +23,8 @@ export class DiscussionService {
   getByPackage(packageId: PackageId) {
     return get_discussions_by_package(packageId);
   }
+
+  delete(id: DiscussionId) {
+  return delete_discussion(id);
+}
 }
