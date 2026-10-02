@@ -9,50 +9,30 @@ import {
   NotFoundException,
   Param,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 
 import { AssetService } from "./asset.service.js";
 import { asset_schema } from "./asset.schema.js";
 import type { AssetId } from "./asset.domain.js";
-import { CurrentUser } from "@nestjs/authentication";
-import type { User } from "../user/user.domain.js";
+import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 
 @Controller("assets")
 export class AssetController {
   constructor(
-      @Inject(AssetService)
-      private readonly service: AssetService,
-    ) {}
+    @Inject(AssetService)
+    private readonly service: AssetService,
+  ) {}
 
-  @Get()
-  async getAll(@CurrentUser() user: User) {
-    
-    if(user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
-    return this.service.getAll();
-  }
-
-  @Get(":id")
-  async get(@Param("id") id: string, @CurrentUser() user: User) {
-
-    if(user.role !== "Manager") { throw new ForbiddenException(); }
-
-    const asset = await this.service.get(id as AssetId);
-
-    if (!asset) {
-      throw new NotFoundException("Asset not found");
-    }
-
-    return asset;
-  }
-
+  /**
+   * Creates a new Asset.
+   * Only Managers can access this endpoint.
+   */
   @Post()
-  async create(@Body() body: unknown, @CurrentUser() user: User) {
-
-    if(user.role !== "Manager") { throw new ForbiddenException(); }
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async create(@Body() body: unknown) {
     const result = asset_schema.safeParse(body);
 
     if (!result.success) {
@@ -62,11 +42,42 @@ export class AssetController {
     return this.service.save(result.data);
   }
 
+  /**
+   * Returns all Assets.
+   * Only Managers can access this endpoint.
+   */
+  @Get()
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async getAll() {
+    return this.service.getAll();
+  }
+
+  /**
+   * Returns an Asset by ID.
+   * Only Managers can access this endpoint.
+   */
+  @Get(":id")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async get(@Param("id") id: string) {
+    const asset = await this.service.get(id as AssetId);
+
+    if (!asset) {
+      throw new NotFoundException("Asset not found");
+    }
+
+    return asset;
+  }
+
+  /**
+   * Deletes an Asset by ID.
+   * Only Managers can access this endpoint.
+   */
   @Delete(":id")
-  async delete(@Param("id") id: string, @CurrentUser() user: User) {
-
-     if(user.role !== "Manager") { throw new ForbiddenException(); }
-
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async delete(@Param("id") id: string) {
     await this.service.delete(id as AssetId);
 
     return;

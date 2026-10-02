@@ -17,20 +17,23 @@ import { package_schema } from "./package.schema.js";
 import { PackageService } from "./package.service.js";
 import type { PackageId, PackageInstance } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
-import { Authenticate, CurrentUser, Public } from "@nestjs/authentication";
-import type { User } from "../user/user.domain.js";
+import { Authenticate} from "@nestjs/authentication";
+
 import { DiscussionService } from "../discussion/discussion.service.js";
+import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 @Controller("packages")
 export class PackageController {
   constructor(
     @Inject(PackageService)
     private readonly service: PackageService,
-
     @Inject(DiscussionService)
     private readonly discussionService: DiscussionService,
   ) {}
 
+  /**
+   * Creates a new Package.
+   */
   @Post()
   async create(@Body() body: unknown) {
     const result = package_schema.safeParse(body);
@@ -42,15 +45,21 @@ export class PackageController {
     return this.service.save(result.data);
   }
 
+  /**
+   * Returns all Packages.
+   * Only Managers can access this endpoint.
+   */
   @Get()
-  async getAll(@CurrentUser() user: User) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async getAll() {
     return this.service.getAll();
   }
 
+  /**
+   * Returns a Package and its resolved content.
+   * Access is restricted to Managers, authorized Viewers, and Consumers with credential.
+   */
   @Get(":id")
   @Authenticate({ optional: true })
   @UseGuards(ConsumerGuard)
@@ -64,68 +73,79 @@ export class PackageController {
     return pack;
   }
 
-  @Post(":id/instances")
-  async addInstance(
-    @Param("id") id: string,
-    @Body() body: PackageInstance,
-    @CurrentUser() user: User,
-  ) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
-    return this.service.addInstance(id as PackageId, body);
-  }
-
+  /**
+   * Deletes a Package.
+   * Only Managers can access this endpoint.
+   */
   @Delete(":id")
-  async delete(@Param("id") id: string, @CurrentUser() user: User) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async delete(@Param("id") id: string) {
     await this.service.delete(id as PackageId);
     return;
   }
 
-  @Get(":id/blacklist")
-  async getBlacklist(@Param("id") id: string, @CurrentUser() user: User) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
+  /**
+   * Adds an Instance to a Package.
+   * Only Managers can access this endpoint.
+   */
+  @Post(":id/instances")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async addInstance(
+    @Param("id") id: string,
+    @Body() body: PackageInstance,
+  ) {
+    return this.service.addInstance(id as PackageId, body);
+  }
 
+  /**
+   * Returns the blacklist of a Package.
+   * Only Managers can access this endpoint.
+   */
+  @Get(":id/blacklist")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async getBlacklist(@Param("id") id: string) {
     return this.service.getBlacklist(id as PackageId);
   }
 
+  /**
+   * Adds an Instance to a Package blacklist.
+   * Only Managers can access this endpoint.
+   */
   @Post(":id/blacklist")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
   async addToBlacklist(
     @Param("id") id: string,
     @Body() body: PackageInstance,
-    @CurrentUser() user: User,
   ) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
     return this.service.addToBlacklist(id as PackageId, body);
   }
 
+  /**
+   * Removes an Instance from a Package blacklist.
+   * Only Managers can access this endpoint.
+   */
+  @Delete(":id/blacklist")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async removeFromBlacklist(
+    @Param("id") id: string,
+    @Body() body: PackageInstance,
+  ) {
+    return this.service.removeFromBlacklist(id as PackageId, body);
+  }
+
+  /**
+   * Returns the Discussions belonging to a Package.
+   * Access follows the Package access rules.
+   */
   @Authenticate({ optional: true })
   @UseGuards(ConsumerGuard)
   @Get(":id/discussions")
   async getDiscussions(@Param("id") id: string) {
     return this.discussionService.getByPackage(id as PackageId);
-  }
-
-  @Delete(":id/blacklist")
-  async removeFromBlacklist(
-    @Param("id") id: string,
-    @Body() body: PackageInstance,
-    @CurrentUser() user: User,
-  ) {
-    if (user.role !== "Manager") {
-      throw new ForbiddenException();
-    }
-
-    return this.service.removeFromBlacklist(id as PackageId, body);
   }
 }

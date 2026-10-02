@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 
 import type { User } from "../user/user.domain.js";
@@ -18,6 +19,7 @@ import type { PackageId } from "../package/package.domain.js";
 import type { DiscussionId } from "./discussion.domain.js";
 import { UserService } from "../user/user.service.js";
 import { ConsumerService } from "../consumer/consumer.service.js";
+import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 @Controller("discussions")
 export class DiscussionController {
@@ -26,11 +28,14 @@ export class DiscussionController {
     private readonly service: DiscussionService,
     @Inject(UserService)
     private readonly userService: UserService,
-
     @Inject(ConsumerService)
     private readonly consumerService: ConsumerService,
   ) {}
 
+  /**
+   * Creates a new Discussion.
+   * Viewers can only create Discussions for Packages they can access.
+   */
   @Post()
   async create(@Body() body: unknown, @CurrentUser() user: User) {
     const result = discussion_schema.safeParse(body);
@@ -61,14 +66,24 @@ export class DiscussionController {
     });
   }
 
+  /**
+   * Returns all Discussions.
+   * Only Managers can access this endpoint.
+   */
   @Get()
-  async getAll(@CurrentUser() user: User) {
-    if (user.role !== "Manager") throw new ForbiddenException();
-
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
+  async getAll() {
     return this.service.getAll();
   }
 
+  /**
+   * Returns a Discussion by ID.
+   * Only Managers can access this endpoint.
+   */
   @Get(":id")
+  @UseGuards(RolesGuard)
+  @Roles("Manager")
   async get(@Param("id") id: string) {
     const discussion = await this.service.get(id as DiscussionId);
 
