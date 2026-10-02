@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Inject,
   NotFoundException,
@@ -17,6 +16,7 @@ import { consumer_schema } from "./consumer.schema.js";
 import type { ConsumerId } from "./consumer.domain.js";
 
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
+import type { PackageId } from "../package/package.domain.js";
 
 @Controller("consumers")
 export class ConsumerController {
@@ -67,6 +67,16 @@ export class ConsumerController {
   }
 
   /**
+ * Returns the Packages linked to a Consumer.
+ *
+ * Accessible to Admins, Builders and Viewers.
+ */
+  @Get(":id/packages")
+  async getLinkedPackages(@Param("id") id: string) {
+    return this.service.getLinkedPackages(id as ConsumerId);
+  }
+
+  /**
    * Deletes a Consumer by ID.
    * Only Admins can access this endpoint.
    */
@@ -75,6 +85,44 @@ export class ConsumerController {
   @Roles("Admin")
   async delete(@Param("id") id: string) {
     await this.service.delete(id as ConsumerId);
+
+    return;
+  }
+
+  /**
+   * Links a Package to a Consumer.
+   * Only Admins can access this endpoint.
+   */
+  @Post(":consumerId/packages/:packageId")
+  @UseGuards(RolesGuard)
+  @Roles("Admin")
+  async linkPackageToConsumer(
+    @Param("consumerId") consumerId: string,
+    @Param("packageId") packageId: string,
+  ) {
+    await this.service.linkPackageToConsumer(
+      consumerId as ConsumerId,
+      packageId as PackageId,
+    );
+
+    return;
+  }
+
+  /**
+   * Unlinks a Package from a Consumer.
+   * Only Admins can access this endpoint.
+   */
+  @Delete(":consumerId/packages/:packageId")
+  @UseGuards(RolesGuard)
+  @Roles("Admin")
+  async unlinkPackageFromConsumer(
+    @Param("consumerId") consumerId: string,
+    @Param("packageId") packageId: string,
+  ) {
+    await this.service.unlinkPackageFromConsumer(
+      consumerId as ConsumerId,
+      packageId as PackageId,
+    );
 
     return;
   }

@@ -1,5 +1,4 @@
 import { client } from "../../db/client.js";
-import type { PackageId } from "../../package/package.domain.js";
 import type { Consumer, ConsumerId } from "../consumer.domain.js";
 
 
@@ -30,9 +29,6 @@ export const get_consumer = async (
 
   return {
     id: result.rows[0].id as ConsumerId,
-    name: result.rows[0].name,
-    packages: packagesResult.rows.map(
-      (row) => row.package_id as PackageId,
-    ),
+    name: result.rows[0].name
   };
 };
