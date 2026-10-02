@@ -51,7 +51,7 @@ export class DiscussionController {
     const packageId = result.data.package as PackageId;
     const consumerId = result.data.consumer as ConsumerId;
 
-    if (user.role === "Viewer") {
+    if (user.roles.includes("Viewer") ) {
       if (!consumerId) {
         throw new BadRequestException("Consumer is required");
       }
@@ -128,22 +128,22 @@ export class DiscussionController {
 
   /**
    * Returns all Discussions.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getAll() {
     return this.service.getAll();
   }
 
   /**
    * Returns a Discussion by ID.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async get(@Param("id") id: string) {
     const discussion = await this.service.get(id as DiscussionId);
 
@@ -157,33 +157,38 @@ export class DiscussionController {
   /**
    * Returns the supporters of a Discussion.
    *
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get(":id/supports")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getSupports(@Param("id") id: string) {
     return this.service.getSupports(id as DiscussionId);
   }
 
   /**
-   * Deletes a Discussion by ID.
-   * Only Managers and the discussion author can access this endpoint.
-   */
-  @Delete(":id")
-  async delete(@Param("id") id: string, @CurrentUser() user: User) {
-    const discussion = await this.service.get(id as DiscussionId);
+ * Deletes a Discussion by ID.
+ *
+ * Builders can delete any Discussion.
+ * Other users can only delete their own Discussion.
+ */
+@Delete(":id")
+async delete(@Param("id") id: string, @CurrentUser() user: User) {
+  const discussion = await this.service.get(id as DiscussionId);
 
-    if (!discussion) {
-      throw new NotFoundException("Discussion not found");
-    }
-
-    if (user.role !== "Manager" && discussion.author !== user.id) {
-      throw new ForbiddenException();
-    }
-
-    await this.service.delete(id as DiscussionId);
-
-    return;
+  if (!discussion) {
+    throw new NotFoundException("Discussion not found");
   }
+
+  if (
+    !user.roles.includes("Builder") &&
+    discussion.author !== user.id
+  ) {
+    throw new ForbiddenException();
+  }
+
+  await this.service.delete(id as DiscussionId);
+
+  return;
+}
 }

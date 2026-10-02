@@ -10,7 +10,7 @@ export const get_user = async (
         id,
         name,
         email,
-        role
+        roles
       FROM users
       WHERE id = $1
     `,
@@ -27,7 +27,7 @@ export const get_user = async (
     id: row.id as UserId,
     name: row.name,
     email: row.email,
-    role: row.role
+    roles: row.roles
    
   };
 };

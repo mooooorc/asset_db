@@ -7,7 +7,6 @@ import {
   Get,
   Param,
   Delete,
-  ForbiddenException,
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
@@ -26,11 +25,11 @@ export class UserController {
 
   /**
    * Creates a new user.
-   * Only Managers can create users.
+   * Only Admins can create users.
    */
   @Post()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Admin")
   async create(@Body() body: unknown) {
     const result = user_schema.safeParse(body);
 
@@ -75,44 +74,22 @@ export class UserController {
 
   /**
    * Deletes a user by ID.
-   * Only Managers can access this endpoint.
+   * Only Admins can access this endpoint.
    */
   @Delete(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Admin")
   delete(@Param("id") id: string) {
     return this.service.delete(id as UserId);
   }
 
   /**
-   * Associates the authenticated Viewer with a Consumer.
-   */
-  @Post("me/consumers")
-  @UseGuards(RolesGuard)
-  @Roles("Viewer")
-  async associateMeToConsumer(
-    @Body() body: { credential: string },
-    @CurrentUser() user: User,
-  ) {
-    const associated = await this.service.associateToConsumer(
-      user.id,
-      body.credential,
-    );
-
-    if (!associated) {
-      throw new UnauthorizedException("Invalid consumer credential");
-    }
-
-    return;
-  }
-
-  /**
    * Associates a user with a Consumer.
-   * Only Managers can access this endpoint.
+   * Only Admins can access this endpoint.
    */
   @Post(":id/consumers")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Admin")
   async associateToConsumer(
     @Param("id") id: string,
     @Body() body: { credential: string },

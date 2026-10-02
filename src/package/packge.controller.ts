@@ -34,8 +34,11 @@ export class PackageController {
 
   /**
    * Creates a new Package.
+   * Only Builders can access this endpoint.
    */
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles("Builder")
   async create(@Body() body: unknown) {
     const result = package_schema.safeParse(body);
 
@@ -48,18 +51,18 @@ export class PackageController {
 
   /**
    * Returns all Packages.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getAll() {
     return this.service.getAll();
   }
 
   /**
    * Returns a Package and its resolved content.
-   * Access is restricted to Managers, authorized Viewers, and Consumers with credential.
+   * Access is restricted to Builders, authorized Viewers, and Consumers with credential.
    */
   @Get(":id")
   @Authenticate({ optional: true })
@@ -76,11 +79,11 @@ export class PackageController {
 
   /**
    * Deletes a Package.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Delete(":id")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async delete(@Param("id") id: string) {
     await this.service.delete(id as PackageId);
     return;
@@ -88,44 +91,44 @@ export class PackageController {
 
   /**
    * Adds an Instance to a Package.
-   * Only Managers can access this endpoint.
+   * Only Builders can access this endpoint.
    */
   @Post(":id/instances")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async addInstance(@Param("id") id: string, @Body() body: PackageInstance) {
     return this.service.addInstance(id as PackageId, body);
   }
 
   /**
    * Returns the blacklist of a Package.
-   * Only Managers can access this endpoint.
+   * Only Builder can access this endpoint.
    */
   @Get(":id/blacklist")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async getBlacklist(@Param("id") id: string) {
     return this.service.getBlacklist(id as PackageId);
   }
 
   /**
    * Adds an Instance to a Package blacklist.
-   * Only Managers can access this endpoint.
+   * Only Builder can access this endpoint.
    */
   @Post(":id/blacklist")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async addToBlacklist(@Param("id") id: string, @Body() body: PackageInstance) {
     return this.service.addToBlacklist(id as PackageId, body);
   }
 
   /**
    * Removes an Instance from a Package blacklist.
-   * Only Managers can access this endpoint.
+   * Only Builder can access this endpoint.
    */
   @Delete(":id/blacklist")
   @UseGuards(RolesGuard)
-  @Roles("Manager")
+  @Roles("Builder")
   async removeFromBlacklist(
     @Param("id") id: string,
     @Body() body: PackageInstance,
