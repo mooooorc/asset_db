@@ -19,12 +19,16 @@ import type { PackageId, PackageInstance } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
 import { Authenticate, CurrentUser, Public } from "@nestjs/authentication";
 import type { User } from "../user/user.domain.js";
+import { DiscussionService } from "../discussion/discussion.service.js";
 
 @Controller("packages")
 export class PackageController {
   constructor(
     @Inject(PackageService)
     private readonly service: PackageService,
+
+    @Inject(DiscussionService)
+    private readonly discussionService: DiscussionService,
   ) {}
 
   @Post()
@@ -103,6 +107,13 @@ export class PackageController {
     }
 
     return this.service.addToBlacklist(id as PackageId, body);
+  }
+
+  @Authenticate({ optional: true })
+  @UseGuards(ConsumerGuard)
+  @Get(":id/discussions")
+  async getDiscussions(@Param("id") id: string) {
+    return this.discussionService.getByPackage(id as PackageId);
   }
 
   @Delete(":id/blacklist")
