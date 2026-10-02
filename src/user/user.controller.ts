@@ -56,6 +56,13 @@ export class UserController {
   getAll() {
     return this.service.getAll();
   }
+  /**
+   * Returns the consumers linked to a user.
+   */
+  @Get(":id/consumers")
+  async getConsumers(@Param("id") id: string) {
+    return this.service.getConsumers(id as UserId);
+  }
 
   /**
    * Returns a user by ID.
@@ -99,22 +106,22 @@ export class UserController {
 
     return;
   }
-/**
- * Unlink a user from a Consumer.
- * Only Admins can acces this endpoint.
- */
+  /**
+   * Unlink a user from a Consumer.
+   * Only Admins can acces this endpoint.
+   */
   @Delete(":id/consumers/:consumerId")
-@UseGuards(RolesGuard)
-@Roles("Admin")
-async unlinkFromConsumer(
-  @Param("id") id: string,
-  @Param("consumerId") consumerId: string,
-) {
-  await this.service.unlinkFromConsumer(
-    id as UserId,
-    consumerId as ConsumerId,
-  );
+  @UseGuards(RolesGuard)
+  @Roles("Admin")
+  async unlinkFromConsumer(
+    @Param("id") id: string,
+    @Param("consumerId") consumerId: string,
+  ) {
+    await this.service.unlinkFromConsumer(
+      id as UserId,
+      consumerId as ConsumerId,
+    );
 
-  return;
-}
+    return;
+  }
 }
