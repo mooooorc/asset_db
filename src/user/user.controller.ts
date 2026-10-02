@@ -15,6 +15,7 @@ import { user_schema } from "./user.schema.js";
 import type { User, UserId } from "./user.domain.js";
 import { CurrentUser } from "@nestjs/authentication";
 import { Roles, RolesGuard } from "./auth/roles.guard.js";
+import type { ConsumerId } from "../consumer/consumer.domain.js";
 
 @Controller("users")
 export class UserController {
@@ -84,25 +85,36 @@ export class UserController {
   }
 
   /**
-   * Associates a user with a Consumer.
+   * Link a user with a Consumer.
    * Only Admins can access this endpoint.
    */
-  @Post(":id/consumers")
+  @Post(":id/consumers/:consumerId")
   @UseGuards(RolesGuard)
   @Roles("Admin")
-  async associateToConsumer(
+  async linkToConsumer(
     @Param("id") id: string,
-    @Body() body: { credential: string },
+    @Param("consumerId") consumerId: string,
   ) {
-    const associated = await this.service.associateToConsumer(
-      id as UserId,
-      body.credential,
-    );
-
-    if (!associated) {
-      throw new UnauthorizedException("Invalid consumer credential");
-    }
+    await this.service.linkToConsumer(id as UserId, consumerId as ConsumerId);
 
     return;
   }
+/**
+ * Unlink a user from a Consumer.
+ * Only Admins can acces this endpoint.
+ */
+  @Delete(":id/consumers/:consumerId")
+@UseGuards(RolesGuard)
+@Roles("Admin")
+async unlinkFromConsumer(
+  @Param("id") id: string,
+  @Param("consumerId") consumerId: string,
+) {
+  await this.service.unlinkFromConsumer(
+    id as UserId,
+    consumerId as ConsumerId,
+  );
+
+  return;
+}
 }
