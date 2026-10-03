@@ -17,13 +17,14 @@ import { DiscussionService } from "./discussion.service.js";
 import { discussion_schema } from "./discussion.schema.js";
 import { CurrentUser } from "@nestjs/authentication";
 import type { PackageId } from "../package/package.domain.js";
-import type { DiscussionId } from "./discussion.domain.js";
+import type { DiscussionCommentId, DiscussionId } from "./discussion.domain.js";
 import { UserService } from "../user/user.service.js";
 import { ConsumerService } from "../consumer/consumer.service.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 import type { ConsumerId } from "../consumer/consumer.domain.js";
 
 import { support_schema } from "./support/support.schema.js";
+import { discussion_comment_schema } from "./comment/comment.schema.js";
 
 @Controller("discussions")
 export class DiscussionController {
@@ -40,6 +41,7 @@ export class DiscussionController {
    * Creates a new Discussion.
    * Viewers can only create Discussions for Packages they can access.
    */
+
   @Post()
   async create(@Body() body: unknown, @CurrentUser() user: User) {
     const result = discussion_schema.safeParse(body);
@@ -81,10 +83,45 @@ export class DiscussionController {
   }
 
   /**
+   * Creates a new Comment in a Discussion.
+   *
+   * The authenticated User becomes the author.
+   * The Discussion must exist.
+   */
+
+  @Post(":id/comments")
+  async createComment(
+    @Param("id") id: string,
+    @Body() body: unknown,
+    @CurrentUser() user: User,
+  ) {
+    const result = discussion_comment_schema.safeParse(body);
+
+    if (!result.success) {
+      throw new BadRequestException(result.error);
+    }
+
+    const discussionId = id as DiscussionId;
+
+    const discussion = await this.service.get(discussionId);
+
+    if (!discussion) {
+      throw new NotFoundException("Discussion not found");
+    }
+
+    return this.service.saveComment({
+      discussion: discussionId,
+      author: user.id,
+      content: result.data.content,
+    });
+  }
+
+  /**
    * Supports a Discussion from the context of a Consumer.
    * The authenticated User must be associated with the Consumer
    * and the Consumer must have access to the Discussion's Package.
    */
+
   @Post(":id/support")
   async support(
     @Param("id") id: string,
@@ -130,6 +167,7 @@ export class DiscussionController {
    * Returns all Discussions.
    * Only Builders can access this endpoint.
    */
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles("Builder")
@@ -167,6 +205,24 @@ export class DiscussionController {
   }
 
   /**
+   * Returns all Comments from a Discussion.
+   *
+   * The Discussion must exist.
+   */
+  @Get(":id/comments")
+  async getComments(@Param("id") id: string) {
+    const discussionId = id as DiscussionId;
+
+    const discussion = await this.service.get(discussionId);
+
+    if (!discussion) {
+      throw new NotFoundException("Discussion not found");
+    }
+
+    return this.service.getComments(discussionId);
+  }
+
+  /**
    * Deletes a Discussion by ID.
    *
    * Builders can delete any Discussion.
@@ -185,6 +241,35 @@ export class DiscussionController {
     }
 
     await this.service.delete(id as DiscussionId);
+
+    return;
+  }
+
+  /**
+   * Deletes a Comment from a Discussion.
+   *
+   * Builders can delete any Comment.
+   * Other users can only delete their own Comment.
+   */
+  @Delete(":id/comments/:commentId")
+  async deleteComment(
+    @Param("id") id: string,
+    @Param("commentId") commentId: string,
+    @CurrentUser() user: User,
+  ) {
+    const comment = await this.service.getComment(
+      commentId as DiscussionCommentId,
+    );
+
+    if (!comment) {
+      throw new NotFoundException("Comment not found");
+    }
+
+    if (!user.roles.includes("Builder") && comment.author !== user.id) {
+      throw new ForbiddenException();
+    }
+
+    await this.service.deleteComment(comment.id);
 
     return;
   }

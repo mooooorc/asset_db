@@ -6,6 +6,10 @@ export type DiscussionId = string & {
   readonly __brand: "DiscussionId";
 };
 
+export type DiscussionCommentId = string & {
+  readonly __brand: "DiscussionCommentId";
+};
+
 export type Discussion = {
   id: DiscussionId;
   package: PackageId;
@@ -20,4 +24,18 @@ export type NewDiscussion = {
   title: string;
   author: UserId;
   consumer?: ConsumerId;
+};
+
+
+export type DiscussionComment = {
+  id: DiscussionCommentId;
+  discussion: DiscussionId;
+  author: UserId;
+  content: string;
+};
+
+export type NewDiscussionComment = {
+  discussion: DiscussionId;
+  author: UserId;
+  content: string;
 };
