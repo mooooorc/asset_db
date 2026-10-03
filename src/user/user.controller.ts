@@ -15,7 +15,10 @@ import { user_schema } from "./user.schema.js";
 import type { User, UserId } from "./user.domain.js";
 import { CurrentUser } from "@nestjs/authentication";
 import { Roles, RolesGuard } from "./auth/roles.guard.js";
-import type { ConsumerId } from "../consumer/consumer.domain.js";
+import type {
+  ConsumerId,
+  ConsumerMembership,
+} from "../consumer/consumer.domain.js";
 
 @Controller("users")
 export class UserController {
@@ -101,8 +104,13 @@ export class UserController {
   async linkToConsumer(
     @Param("id") id: string,
     @Param("consumerId") consumerId: string,
+    @Body() body: {membership: ConsumerMembership}
   ) {
-    await this.service.linkToConsumer(id as UserId, consumerId as ConsumerId);
+    await this.service.linkToConsumer(
+      id as UserId,
+      consumerId as ConsumerId,
+      body.membership
+    );
 
     return;
   }

@@ -8,7 +8,7 @@ import { delete_user } from "./operations/delete.js";
 import { link_user_to_consumer } from "./operations/link_to_consumer.js";
 import { ConsumerService } from "../consumer/consumer.service.js";
 import { get_user_consumers } from "./operations/get_user_consumers.js";
-import type { ConsumerId } from "../consumer/consumer.domain.js";
+import type { ConsumerId, ConsumerMembership } from "../consumer/consumer.domain.js";
 import { unlink_user_from_consumer } from "./operations/unlink_from_consumer.js";
 
 @Injectable()
@@ -34,8 +34,8 @@ export class UserService {
     return delete_user(id);
   }
 
-  linkToConsumer(userId: UserId, consumerId: ConsumerId) {
-    return link_user_to_consumer(userId, consumerId);
+  linkToConsumer(userId: UserId, consumerId: ConsumerId, membership: ConsumerMembership) {
+    return link_user_to_consumer(userId, consumerId, membership);
   }
 
   unlinkFromConsumer(userId: UserId, consumerId: ConsumerId) {
