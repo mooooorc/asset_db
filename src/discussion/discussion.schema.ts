@@ -6,3 +6,4 @@ export const discussion_schema = z.object({
   title: z.string().min(1),
   consumer: consumerIdSchema.optional()
 });
+
