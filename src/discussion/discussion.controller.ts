@@ -51,14 +51,14 @@ export class DiscussionController {
     const packageId = result.data.package as PackageId;
     const consumerId = result.data.consumer as ConsumerId;
 
-    if (user.roles.includes("Viewer") ) {
+    if (user.roles.includes("Viewer")) {
       if (!consumerId) {
         throw new BadRequestException("Consumer is required");
       }
 
-      const consumerIds = await this.userService.getConsumers(user.id);
+      const consumers = await this.userService.getConsumers(user.id);
 
-      if (!consumerIds.includes(consumerId)) {
+      if (!consumers.some((consumer) => consumer.consumerId === consumerId)) {
         throw new ForbiddenException();
       }
 
@@ -106,9 +106,9 @@ export class DiscussionController {
       throw new NotFoundException("Discussion not found");
     }
 
-    const consumerIds = await this.userService.getConsumers(user.id);
+    const consumers = await this.userService.getConsumers(user.id);
 
-    if (!consumerIds.includes(consumerId)) {
+    if (!consumers.some((consumer) => consumer.consumerId === consumerId)) {
       throw new ForbiddenException();
     }
 
@@ -167,28 +167,25 @@ export class DiscussionController {
   }
 
   /**
- * Deletes a Discussion by ID.
- *
- * Builders can delete any Discussion.
- * Other users can only delete their own Discussion.
- */
-@Delete(":id")
-async delete(@Param("id") id: string, @CurrentUser() user: User) {
-  const discussion = await this.service.get(id as DiscussionId);
+   * Deletes a Discussion by ID.
+   *
+   * Builders can delete any Discussion.
+   * Other users can only delete their own Discussion.
+   */
+  @Delete(":id")
+  async delete(@Param("id") id: string, @CurrentUser() user: User) {
+    const discussion = await this.service.get(id as DiscussionId);
 
-  if (!discussion) {
-    throw new NotFoundException("Discussion not found");
+    if (!discussion) {
+      throw new NotFoundException("Discussion not found");
+    }
+
+    if (!user.roles.includes("Builder") && discussion.author !== user.id) {
+      throw new ForbiddenException();
+    }
+
+    await this.service.delete(id as DiscussionId);
+
+    return;
   }
-
-  if (
-    !user.roles.includes("Builder") &&
-    discussion.author !== user.id
-  ) {
-    throw new ForbiddenException();
-  }
-
-  await this.service.delete(id as DiscussionId);
-
-  return;
-}
 }

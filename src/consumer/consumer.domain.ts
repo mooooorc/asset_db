@@ -13,3 +13,4 @@ export type ConsumerRegistration = {
   credential: string;
 };
 
+export type ConsumerMembership = "Member" | "Manager";

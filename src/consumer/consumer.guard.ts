@@ -21,13 +21,18 @@ export class ConsumerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-    if (request.user?.role === "Manager") {
+    if (user?.roles?.includes("Builder")) {
       return true;
     }
 
-    if (request.user?.role === "Viewer") {
-      const consumerIds = await this.userService.getConsumers(request.user.id);
+    if (user?.roles?.includes("Viewer")) {
+      const consumers = await this.userService.getConsumers(user.id);
+
+      const consumerIds = consumers.map(
+        (consumer) => consumer.consumerId,
+      );
 
       const hasAccess = await this.consumerService.hasPackageAccess(
         consumerIds,
@@ -55,9 +60,12 @@ export class ConsumerGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    const packageId = request.params.id;
+    const hasAccess = await this.consumerService.hasPackageAccess(
+      [consumer.id],
+      request.params.id as PackageId,
+    );
 
-    if (!consumer.packages.includes(packageId)) {
+    if (!hasAccess) {
       throw new ForbiddenException();
     }
 
