@@ -7,7 +7,8 @@
     "dev": "tsx src/index.ts",
     "migrate": "tsx src/migrations/migrate.ts",
     "nest": "tsx src/main.ts",
-    "bootstrap": "tsx src/user/bootstrap.ts"
+    "bootstrap": "tsx src/user/bootstrap.ts",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,8 @@
     "@nestjs/cli": "^12.0.8",
     "@types/pg": "^8.23.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@nestjs/authentication": "^0.0.1",

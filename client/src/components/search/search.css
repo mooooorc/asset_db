@@ -1,0 +1,32 @@
+.search {
+    display: flex;
+    gap: 1px;
+    background-color: var(--border-01);
+    border: 1px solid var(--border-01);
+    overflow: hidden;
+    corner-shape: squircle;
+    border-radius: 12px;
+    width: 372px;
+}
+
+.search .input {
+
+    all: unset;
+    height: 100%;
+    flex: 1;
+    background-color: var(--bg-01);
+    padding-inline: 12px;
+    color: var(--fg-03);
+}
+
+.search .button {
+    border: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding-inline: 0;
+    width: 36px;
+
+    &:hover {
+        transform: scale(1);
+    }
+}

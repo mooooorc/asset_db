@@ -1,82 +1,33 @@
 import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import type { Package as PackageType } from "../../../src/package/package.domain";
 
-type Package = {
-  id: string;
-  name: string;
-};
-
-type PackageInstance = {
-  assetId: string;
-  instanceId: string;
-};
-
-export function PackageView() {
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [selectedPackage, setSelectedPackage] = useState("");
-  const [instances, setInstances] = useState<PackageInstance[]>([]);
+export const Package = () => {
+  const { id } = useParams();
+  const [pack, setPack] = useState<PackageType | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/packages")
+    fetch(`http://localhost:3000/packages/${id}`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
-      .then(setPackages);
-  }, []);
+      .then((data) => setPack(data));
+  }, [id]);
 
-  useEffect(() => {
-    if (!selectedPackage) {
-      return;
-    }
-
-    fetch(
-      `http://localhost:3000/packages/${selectedPackage}/instances`,
-    )
-      .then((response) => response.json())
-      .then(setInstances);
-  }, [selectedPackage]);
+  if (!pack) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h4>Packages</h4>
-      </div>
+      <h1>{pack.name}</h1>
 
-      <select
-        value={selectedPackage}
-        onChange={(event) => setSelectedPackage(event.target.value)}
-      >
-        <option value="">Select a Package</option>
+      <Link to="#">Overview</Link>
+      <Link to={`/packages/${id}/discussions`}>Discussions</Link>
 
-        {packages.map((pck) => (
-          <option key={pck.id} value={pck.id}>
-            {pck.name}
-          </option>
-        ))}
-      </select>
+      <pre>{JSON.stringify(pack, null, 2)}</pre>
 
-      {selectedPackage && (
-        <div className="table">
-          <div className="row header">
-            <div>Asset</div>
-            <div>Instance</div>
-          </div>
-
-          {instances.map((instance) => (
-            <div
-              className="row"
-              key={`${instance.assetId}-${instance.instanceId}`}
-            >
-              <div>{instance.assetId}</div>
-              <div>{instance.instanceId}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      <Link to="/packages">Go back</Link>
     </>
   );
-}
+};

@@ -11,10 +11,8 @@ import type { AssetId } from "../asset/asset.domain.js";
 import type {
   Instance,
   InstanceId,
-  InstanceReference,
 } from "./instance.domain.js";
-import type { DefinitionId } from "../definition/definition.domain.js";
-import type { PackageConditionOperator } from "../package/package.domain.js";
+
 import { get_instance_by_index } from "./operations/get_by_index.js";
 
 
