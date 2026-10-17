@@ -1,59 +1,19 @@
-import { AssetService } from "../../asset/asset.service.js";
-import { client } from "../../db/client.js";
+import { AssetService } from "../../../asset/asset.service.js";
+import { client } from "../../../db/client.js";
 
 import { randomUUID } from "node:crypto";
-import type { Instance, InstanceId } from "../instance.domain.js";
-import type { Asset, AssetId } from "../../asset/asset.domain.js";
-import type { DefinitionId } from "../../definition/definition.domain.js";
-import type { InstanceService } from "../instance.service.js";
-import { parse_instance_reference } from "./parse_reference.js";
+import type {
+  Instance,
+  InstanceId,
+  new_instance,
+} from "../../instance.domain.js";
+import type { Asset, AssetId } from "../../../asset/asset.domain.js";
+import type { DefinitionId } from "../../../definition/definition.domain.js";
+import type { InstanceService } from "../../instance.service.js";
+import { parse_instance_reference } from "../parse_reference.js";
 import { insert_instance_relation } from "./create_relation.js";
-
-type new_instance = Omit<Instance, "asset_db_id" | "index">
-
-const check_required = (asset: Asset, instance: new_instance ) => {
-
-  const required_defs = asset.definitions.filter((def) => def.required)
-
-  for (const def of required_defs) {
-    if(!(def.definition in instance.properties)) {
-      throw new Error (`Missing required definition: ${def.definition}`)
-    }
-  }
-}
-
-const check_identifiable = async (
-  asset: Asset,
-  instance: new_instance,
-) => {
-  const identifiable_defs = asset.definitions.filter(
-    (def) => def.identifiable,
-  );
-
-  for (const def of identifiable_defs) {
-    const value = instance.properties[def.definition];
-
-    if (value === undefined) {
-      continue;
-    }
-
-    const result = await client.query(
-      `
-        SELECT 1
-        FROM "${asset.id}"
-        WHERE "${def.definition}" = $1
-        LIMIT 1
-      `,
-      [value],
-    );
-
-    if (result.rows.length > 0) {
-      throw new Error(
-        `Duplicate identifiable definition: ${def.definition}`,
-      );
-    }
-  }
-};
+import { check_required_issues } from "../check/check_required.js";
+import { check_identifiable_issues } from "../check/check_identifiable.js";
 
 const update_instance_counter = async (asset_id: AssetId) => {
   const result = await client.query(
@@ -85,11 +45,7 @@ const split_properties = async (
       definitionId as DefinitionId,
     );
 
-    if (
-      definition &&
-      "type" in definition &&
-      definition.type === "relation"
-    ) {
+    if (definition && "type" in definition && definition.type === "relation") {
       relations[definitionId] = value;
     } else {
       normal[definitionId] = value;
@@ -110,9 +66,6 @@ export const save_instance = async (
     throw new Error(`Asset not found: ${instance.type}`);
   }
 
-  check_required(asset, instance);
-  await check_identifiable(asset, instance);
-
   const { normal, relations } = await split_properties(
     instance.properties,
     assetService,
@@ -132,9 +85,7 @@ export const save_instance = async (
     .map((column) => `"${column}"`)
     .join(", ");
 
-  const values = properties
-    .map((_, index) => `$${index + 3}`)
-    .join(", ");
+  const values = properties.map((_, index) => `$${index + 3}`).join(", ");
 
   const query = `
     INSERT INTO "${newInstance.type}" (${columns})
@@ -146,6 +97,9 @@ export const save_instance = async (
     newInstance.index,
     ...properties.map((property) => normal[property]),
   ]);
+
+  await check_required_issues(asset, newInstance);
+  await check_identifiable_issues(asset, newInstance);
 
   for (const [definitionId, value] of Object.entries(relations)) {
     if (!Array.isArray(value)) {

@@ -57,7 +57,7 @@ export class PackageService {
   }
 
   addInstance(packageId: PackageId, instance: PackageInstance) {
-    return add_instance_to_package(packageId, instance);
+    return add_instance_to_package(packageId, instance, this.instanceService);
   }
 
   addToBlacklist(packageId: PackageId, instance: PackageInstance) {
