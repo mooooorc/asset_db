@@ -1,6 +1,7 @@
-import type { AssetId } from "../../asset/asset.domain.js";
-import { client } from "../../db/client.js";
-import type { Instance, InstanceId } from "../instance.domain.js";
+import type { AssetId } from "../../../asset/asset.domain.js";
+import { client } from "../../../db/client.js";
+import type { Instance, InstanceId } from "../../instance.domain.js";
+import { get_instance_issues } from "./get_issues.js";
 import { get_relations } from "./get_relations.js";
 
 export const get_instance = async (
@@ -26,6 +27,7 @@ export const get_instance = async (
     type,
     asset_db_ID,
   );
+  const issues = await get_instance_issues(asset_db_ID)
 
   return {
     asset_db_id: asset_db_ID,
@@ -35,5 +37,6 @@ export const get_instance = async (
       ...properties,
       ...relations,
     },
+    status: issues.length === 0 ? "healthy" : "unhealthy"
   };
 };
