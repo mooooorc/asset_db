@@ -10,6 +10,7 @@ import type { AssetId } from "../asset/asset.domain.js";
 import type {
   Instance,
   InstanceId,
+  new_instance,
 } from "./instance.domain.js";
 import { get_instance_by_index } from "./operations/read/get_by_index.js";
 import { get_all_instances } from "./operations/read/get_all.js";
@@ -38,7 +39,7 @@ export class InstanceService {
   }
 
 
-  save(instance: Omit<Instance, "asset_db_id" | "index">) {
+  save(instance: new_instance) {
     return save_instance(instance, this.assetService, this);
   }
 

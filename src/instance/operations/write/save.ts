@@ -14,6 +14,7 @@ import { parse_instance_reference } from "../parse_reference.js";
 import { insert_instance_relation } from "./create_relation.js";
 import { check_required_issues } from "../check/check_required.js";
 import { check_identifiable_issues } from "../check/check_identifiable.js";
+import { get_instance_issues } from "../read/get_issues.js";
 
 const update_instance_counter = async (asset_id: AssetId) => {
   const result = await client.query(
@@ -55,11 +56,13 @@ const split_properties = async (
   return { normal, relations };
 };
 
+
 export const save_instance = async (
   instance: new_instance,
   assetService: AssetService,
   instanceService: InstanceService,
 ): Promise<Instance> => {
+  
   const asset = await assetService.get(instance.type);
 
   if (!asset) {
@@ -98,8 +101,15 @@ export const save_instance = async (
     ...properties.map((property) => normal[property]),
   ]);
 
-  await check_required_issues(asset, newInstance);
-  await check_identifiable_issues(asset, newInstance);
+  await check_required_issues(asset, newInstance as Instance);
+  await check_identifiable_issues(asset, newInstance as Instance);
+
+  const issues = await get_instance_issues(newInstance.asset_db_id);
+
+  const savedInstance: Instance = {
+    ...newInstance,
+    status: issues.length > 0 ? "unhealthy" : "healthy",
+  };
 
   for (const [definitionId, value] of Object.entries(relations)) {
     if (!Array.isArray(value)) {
@@ -121,12 +131,12 @@ export const save_instance = async (
       }
 
       await insert_instance_relation(
-        newInstance,
+        savedInstance,
         targetInstance,
         definitionId as DefinitionId,
       );
     }
   }
 
-  return newInstance;
+  return savedInstance;
 };

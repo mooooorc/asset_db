@@ -17,4 +17,4 @@ export type InstanceReference = {
   index: number;
 };
 
-export type new_instance = Omit<Instance, "asset_db_id" | "index">
+export type new_instance = Omit<Instance, "asset_db_id" | "index" | "status">
