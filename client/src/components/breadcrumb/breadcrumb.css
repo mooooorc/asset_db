@@ -1,0 +1,60 @@
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb .item {
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 4px;
+    transition: background-color 150ms ease;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--bg-02);
+    }
+}
+
+.breadcrumb .item[aria-current="page"] {
+    cursor: default;
+    pointer-events: none;
+
+}
+
+.breadcrumb .label {
+    user-select: none;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.breadcrumb .chevron {
+    color: var(--icon-01);
+    flex-shrink: 0;
+}
+
+.breadcrumb .count {
+    color: var(--fg-03);
+    background-color: var(--bg-03);
+    font-family: 'Geist Mono';
+    padding-inline: 12px;
+    padding-block: 2px;
+    border-radius: 400px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    user-select: none;
+    transition: background-color 150ms ease;
+}
+
+.breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.breadcrumb .item:not([aria-current="page"]):hover .count {
+    background-color: var(--bg-01);
+}

@@ -26,6 +26,7 @@ import { DiscussionModule } from "./discussion/discussion.module.js";
       session: {
         absoluteTtl: "7d",
         idleTtl: "3d",
+        trustedOrigins: ["http://localhost:5173"],
       },
     }),
     UserModule,
