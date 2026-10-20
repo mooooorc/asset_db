@@ -15,13 +15,14 @@ import {
 import { package_schema } from "./package.schema.js";
 
 import { PackageService } from "./package.service.js";
-import type { PackageId, PackageInstance } from "./package.domain.js";
+import type { PackageId, PackageInstance, PackageTag } from "./package.domain.js";
 import { ConsumerGuard } from "../consumer/consumer.guard.js";
 import { Authenticate } from "@nestjs/authentication";
 
 import { DiscussionService } from "../discussion/discussion.service.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 import type { DiscussionId } from "../discussion/discussion.domain.js";
+import type { InstanceTag } from "../instance/instance.domain.js";
 
 @Controller("packages")
 export class PackageController {
@@ -64,11 +65,11 @@ export class PackageController {
    * Returns a Package and its resolved content.
    * Access is restricted to Builders, authorized Viewers, and Consumers with credential.
    */
-  @Get(":id")
+  @Get(":tag")
   @Authenticate({ optional: true })
   @UseGuards(ConsumerGuard)
-  async get(@Param("id") id: string) {
-    const pack = await this.service.prepare(id as PackageId);
+  async get(@Param("tag") tag: string) {
+    const pack = await this.service.prepare(tag as PackageTag);
 
     if (!pack) {
       throw new NotFoundException("Package not found");
@@ -77,15 +78,17 @@ export class PackageController {
     return pack;
   }
 
+ 
+
   /**
    * Deletes a Package.
    * Only Builders can access this endpoint.
    */
-  @Delete(":id")
+  @Delete(":tag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async delete(@Param("id") id: string) {
-    await this.service.delete(id as PackageId);
+  async delete(@Param("tag") tag: string) {
+    await this.service.delete(tag as PackageTag);
     return;
   }
 
@@ -93,47 +96,47 @@ export class PackageController {
    * Adds an Instance to a Package.
    * Only Builders can access this endpoint.
    */
-  @Post(":id/instances")
+  @Post(":tag/instances")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async addInstance(@Param("id") id: string, @Body() body: PackageInstance) {
-    return this.service.addInstance(id as PackageId, body);
+  async addInstance(@Param("tag") tag: string, @Body() body: InstanceTag) {
+    return this.service.addInstance(tag as PackageTag, body);
   }
 
   /**
    * Returns the blacklist of a Package.
    * Only Builder can access this endpoint.
    */
-  @Get(":id/blacklist")
+  @Get(":tag/blacklist")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async getBlacklist(@Param("id") id: string) {
-    return this.service.getBlacklist(id as PackageId);
+  async getBlacklist(@Param("tag") tag: string) {
+    return this.service.getBlacklist(tag as PackageTag);
   }
 
   /**
    * Adds an Instance to a Package blacklist.
    * Only Builder can access this endpoint.
    */
-  @Post(":id/blacklist")
+  @Post(":tag/blacklist")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async addToBlacklist(@Param("id") id: string, @Body() body: PackageInstance) {
-    return this.service.addToBlacklist(id as PackageId, body);
+  async addToBlacklist(@Param("tag") tag: string, @Body() body: InstanceTag) {
+    return this.service.addToBlacklist(tag as PackageTag, body);
   }
 
   /**
    * Removes an Instance from a Package blacklist.
    * Only Builder can access this endpoint.
    */
-  @Delete(":id/blacklist")
+  @Delete(":tag/blacklist")
   @UseGuards(RolesGuard)
   @Roles("Builder")
   async removeFromBlacklist(
-    @Param("id") id: string,
-    @Body() body: PackageInstance,
+    @Param("tag") tag: string,
+    @Body() body: InstanceTag,
   ) {
-    return this.service.removeFromBlacklist(id as PackageId, body);
+    return this.service.removeFromBlacklist(tag as PackageTag, body);
   }
 
   /**
@@ -142,7 +145,7 @@ export class PackageController {
    */
   @Authenticate({ optional: true })
   @UseGuards(ConsumerGuard)
-  @Get(":id/discussions")
+  @Get(":tag/discussions")
   async getDiscussions(@Param("id") id: string) {
     return this.discussionService.getByPackage(id as PackageId);
   }

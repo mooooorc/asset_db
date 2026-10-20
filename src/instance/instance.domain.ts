@@ -1,20 +1,31 @@
-import type { AssetId } from "../asset/asset.domain.js";
+import type { AssetId, AssetTag } from "../asset/asset.domain.js";
 
 export type InstanceId = string & {
   readonly __brand: "InstanceId";
 };
 
+export type InstanceTag = {
+  assetTag: AssetTag;
+  index: number;
+};
+
+
 export type Instance = {
-  asset_db_id: InstanceId;
-  type: AssetId;
-  index: number;
+  asset: AssetId;
+  id: InstanceId;
+  tag: InstanceTag;
   properties: Record<string, unknown>;
-  status: "healthy" | "unhealthy"
+  status: "healthy" | "unhealthy";
 };
 
-export type InstanceReference = {
-  assetId: AssetId;
-  index: number;
+export type InstanceData = {
+  type: AssetTag;
+  properties: Record<string, unknown>;
 };
 
-export type new_instance = Omit<Instance, "asset_db_id" | "index" | "status">
+
+
+export type InstanceToCheck = Pick<
+  Instance,
+  "id" | "tag" | "properties"
+>;

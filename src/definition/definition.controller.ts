@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { DefinitionService } from "./definition.service.js";
 import { definition_schema } from "./definition.schema.js";
-import type { DefinitionId } from "./definition.domain.js";
+import type { Definition, DefinitionId, DefinitionTag } from "./definition.domain.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 
@@ -55,14 +55,14 @@ export class DefinitionController {
   }
 
   /**
-   * Returns a Definition by ID.
+   * Returns a Definition by tag.
    * Only Builders can access this endpoint.
    */
-  @Get(":id")
+  @Get(":tag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async get(@Param("id") id: string) {
-    const definition = await this.service.get(id as DefinitionId);
+  async get(@Param("tag") tag: string) {
+    const definition = await this.service.get(tag as DefinitionTag);
 
     if (!definition) {
       throw new NotFoundException("Definition not found");
@@ -75,11 +75,11 @@ export class DefinitionController {
    * Deletes a Definition by ID.
    * Only Builders can access this endpoint.
    */
-  @Delete(":id")
+  @Delete(":tag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async delete(@Param("id") id: string) {
-    await this.service.delete(id as DefinitionId);
+  async delete(@Param("tag") tag: string) {
+    await this.service.delete(tag as DefinitionTag);
 
     return;
   }

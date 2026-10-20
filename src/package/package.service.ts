@@ -1,26 +1,30 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { save_package } from "./operations/save.js";
-import { get_package } from "./operations/get.js";
-import { get_all_packages } from "./operations/get_all.js";
-import { get_package_instances } from "./operations/get_instances.js";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { save_package } from "./operations/save_package.js";
+import { get_package } from "./operations/get_package.js";
+
 import { AssetService } from "../asset/asset.service.js";
 import { InstanceService } from "../instance/instance.service.js";
-import { add_instance_to_package } from "./operations/add_instance.js";
-import { delete_package } from "./operations/delete.js";
+
+import { delete_package } from "./operations/delete_package.js";
 import type {
   Package,
   PackageConditionOperator,
+
+  PackageData,
+
   PackageId,
-  PackageInstance,
+  PackageTag,
 } from "./package.domain.js";
-import { get_package_content } from "./operations/get_content.js";
-import { prepare_package } from "./operations/prepare.js";
+
 import type { AssetId } from "../asset/asset.domain.js";
 import type { DefinitionId } from "../definition/definition.domain.js";
-import { select_instance_by_condition } from "./operations/select_instances_by_condition.js";
-import { add_instance_to_blacklist } from "./operations/blacklist/add_instance.js";
-import { remove_instance_from_blacklist } from "./operations/blacklist/remove_instance.js";
-import { get_package_blacklist } from "./operations/blacklist/get.js";
+import { client } from "../db/client.js";
+import type { InstanceTag } from "../instance/instance.domain.js";
+import { find_instance } from "../instance/operations/find_instance.js";
+import { find_asset } from "../asset/operations/find_asset.js";
+import { select_instances } from "./operations/select_instances.js";
+import { add_instance } from "./operations/add_instance.js";
+import { build_package } from "./operations/build_package.js";
 
 @Injectable()
 export class PackageService {
@@ -31,50 +35,93 @@ export class PackageService {
     private readonly instanceService: InstanceService,
   ) {}
 
-  save(pack: Package) {
-    return save_package(pack);
+  save(pack: PackageData) {
+    return save_package.self(pack);
   }
 
-  get(id: PackageId) {
-    return get_package(id);
+  async get(tag: PackageTag) {
+    const id = await this.get_id(tag);
+
+    return get_package.self(id);
   }
 
   getAll() {
-    return get_all_packages();
+    return get_package.all()
   }
 
-  prepare(id: PackageId) {
-    return prepare_package(id, this.assetService, this.instanceService, this);
+  async prepare(tag: PackageTag) {
+    const id = await this.get_id(tag);
+    return build_package.public(id, this.assetService, this.instanceService, this);
   }
 
-  getContent(packageId: PackageId) {
-    return get_package_content(
-      packageId,
+  async getContent(tag: PackageTag) {
+    const id = await this.get_id(tag);
+
+    return get_package.content(
+      id,
       this.assetService,
       this.instanceService,
       this,
     );
   }
+  async addInstance(tag: PackageTag, instance: InstanceTag) {
+    const packageId = await this.get_id(tag);
+    const instanceOutput = await this.instanceService.get(instance);
 
-  addInstance(packageId: PackageId, instance: PackageInstance) {
-    return add_instance_to_package(packageId, instance, this.instanceService);
-  }
+    if (!instanceOutput) {
+      throw new NotFoundException("Instance not found");
+    }
 
-  addToBlacklist(packageId: PackageId, instance: PackageInstance) {
-    return add_instance_to_blacklist(packageId, instance);
-  }
+    const assetId = await find_asset.id_by_tag(instance.assetTag);
 
-  removeFromBlacklist(packageId: PackageId, instance: PackageInstance) {
-    return remove_instance_from_blacklist(packageId, instance);
-  }
+    if (!assetId) {
+      throw new NotFoundException(`Asset not found: ${instance.assetTag}`);
+    }
 
-  getBlacklist(packageId: PackageId) {
-    return get_package_blacklist(packageId);
-  }
+    const instanceId = await find_instance.id_by_tag(instance);
 
-  getInstances(packageId: PackageId) {
-    return get_package_instances(
+    if (!instanceId) {
+      throw new NotFoundException(
+        `Instance not found: ${instance.assetTag}:${instance.index}`,
+      );
+    }
+
+    return add_instance.to_package(
       packageId,
+      assetId,
+      instanceId,
+      instanceOutput.status,
+    );
+  }
+
+  async addToBlacklist(tag: PackageTag, instance: InstanceTag) {
+    const id = await this.get_id(tag);
+
+    return add_instance.to_blacklist(id, instance);
+  }
+
+  async removeFromBlacklist(tag: PackageTag, instance: InstanceTag) {
+    const id = await this.get_id(tag);
+    const instance_id = await find_instance.id_by_tag(instance);
+
+    if (!instance_id) {
+      throw new NotFoundException(`Instance not found: ${instance}`);
+    }
+
+    return delete_package.instance_from_blacklist(id, instance_id, instance.assetTag);
+  }
+
+  async getBlacklist(tag: PackageTag) {
+    const id = await this.get_id(tag);
+
+    return get_package.blacklist(id);
+  }
+
+  async getInstances(tag: PackageTag) {
+    const id = await this.get_id(tag);
+
+    return get_package.instances(
+      id,
       this.assetService,
       this.instanceService,
       this,
@@ -87,7 +134,7 @@ export class PackageService {
     operator: PackageConditionOperator,
     value: unknown,
   ) {
-    return select_instance_by_condition(
+    return select_instances.by_condition(
       type,
       definitionId,
       operator,
@@ -96,7 +143,31 @@ export class PackageService {
     );
   }
 
-  delete(id: PackageId) {
-    return delete_package(id);
+  async delete(tag: PackageTag) {
+    const id = await this.get_id(tag);
+    return delete_package.self(id);
+  }
+
+  private async get_id_by_tag(tag: PackageTag): Promise<PackageId | null> {
+    const result = await client.query(
+      `
+      SELECT id
+      FROM packages
+      WHERE tag = $1
+    `,
+      [tag],
+    );
+
+    return result.rows[0]?.id ?? null;
+  }
+
+  private async get_id(tag: PackageTag): Promise<PackageId> {
+    const id = await this.get_id_by_tag(tag);
+
+    if (!id) {
+      throw new NotFoundException(`Package not found: ${tag}`);
+    }
+
+    return id;
   }
 }

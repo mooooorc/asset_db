@@ -1,5 +1,6 @@
 CREATE TABLE packages (
     id TEXT PRIMARY KEY,
+    tag TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     linked_asset_id TEXT REFERENCES assets(id)
 );

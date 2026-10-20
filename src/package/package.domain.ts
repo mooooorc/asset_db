@@ -1,30 +1,50 @@
-import type { AssetId } from "../asset/asset.domain.js";
-import type { DefinitionId } from "../definition/definition.domain.js";
-import type { Instance, InstanceId } from "../instance/instance.domain.js";
+import type { AssetId, AssetTag } from "../asset/asset.domain.js";
+import type { DefinitionId, DefinitionTag } from "../definition/definition.domain.js";
+import type { Instance, InstanceId, InstanceTag } from "../instance/instance.domain.js";
 
 export type PackageId = string & {
   readonly __brand: "PackageId";
 };
 
+export type PackageTag = string & {
+  readonly __brand: "PackageTag";
+}
+
 export type Package = {
   id: PackageId;
+  tag: PackageTag;
   name: string;
   linkedAsset?: AssetId;
-  conditions?: PackageCondition[];
-  blacklist?: PackageInstance[];
+  conditions?: {
+    definition: DefinitionId;
+    operator: PackageConditionOperator;
+    value: unknown;
+  }[];
+  blacklist?: InstanceTag[];
 };
 
-export type PublicPackage = {
-  id: PackageId;
+export type PackageData = {
+  tag: PackageTag;
   name: string;
-  items: number;
-  content: PackageContent;
-};
+  linkedAsset?: AssetTag;
+  conditions?: PackageCondition[];
+  blacklist?: InstanceTag[];
+}
 
 export type PackageInstance = {
   assetId: AssetId;
   instanceId: InstanceId;
 };
+
+
+
+export type PublicPackage = {
+  tag: PackageTag;
+  name: string;
+  items: number;
+  content: PackageContent;
+};
+
 
 export type PackageConditionOperator =
   | "equal"
@@ -34,7 +54,7 @@ export type PackageConditionOperator =
   | "contains";
 
 export type PackageCondition = {
-  definition: DefinitionId;
+  definition: DefinitionTag;
   operator: PackageConditionOperator;
   value: unknown;
 };

@@ -1,26 +1,42 @@
-import { Injectable } from "@nestjs/common";
-import { get_def } from "./operations/get.js";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { get_all_defs } from "./operations/get_all.js";
-import { save_def } from "./operations/save_def.js";
-import { delete_def } from "./operations/delete.js";
-import type { Definition, DefinitionId } from "./definition.domain.js";
+import { save_definition } from "./operations/save_definition.js";
+import { delete_definition } from "./operations/delete_definition.js";
+import type {
+  DefinitionId,
+  DefinitionData,
+  DefinitionTag,
+} from "./definition.domain.js";
+import { find_definition } from "./operations/find_definition.js";
+import { get_definition } from "./operations/get_definition.js";
 
 @Injectable()
 export class DefinitionService {
-  get(id: DefinitionId) {
-    return get_def(id);
+  async get(tag: DefinitionTag) {
+    const id = await find_definition.id_by_tag(tag);
+
+    if (!id) {
+      throw new NotFoundException(`Definition not found: ${tag}`);
+    }
+
+    return get_definition.self(id);
   }
 
   getAll() {
-    return get_all_defs();
+    return get_definition.all();
   }
 
-  save(def: Definition){
-    return save_def(def);
+  save(def: DefinitionData) {
+    return save_definition(def);
   }
 
-  delete(id: DefinitionId) {
-    return delete_def(id);
+  async delete(tag: DefinitionTag) {
+    const id = await find_definition.id_by_tag(tag);
+
+    if (!id) {
+      throw new NotFoundException(`Definition not found: ${tag}`);
+    }
+
+    return delete_definition(id);
   }
 }

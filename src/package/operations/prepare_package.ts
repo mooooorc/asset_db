@@ -1,0 +1,39 @@
+import type { AssetService } from "../../asset/asset.service.js";
+import type { InstanceService } from "../../instance/instance.service.js";
+import type { PackageId, PublicPackage } from "../package.domain.js";
+import type { PackageService } from "../package.service.js";
+import { get_package } from "./get_package.js";
+
+/*
+export const prepare_package = async (
+  id: PackageId,
+  assetService: AssetService,
+  instanceService: InstanceService,
+  packageService: PackageService
+): Promise<PublicPackage | null> => {
+  const pack = await get_package.self(id);
+
+  if (!pack) {
+    return null;
+  }
+
+  const content = await get_package.content(
+    id,
+    assetService,
+    instanceService,
+    packageService
+  );
+
+  const items = Object.values(content).reduce(
+    (total, instances) => total + instances.length,
+    0,
+  );
+
+  return {
+    tag: pack.tag,
+    name: pack.name,
+    items,
+    content,
+  };
+};
+*/
