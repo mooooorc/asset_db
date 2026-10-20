@@ -1,5 +1,6 @@
 CREATE TABLE assets (
     id TEXT PRIMARY KEY,
+    tag TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     expose_as_package BOOLEAN NOT NULL DEFAULT FALSE
 );

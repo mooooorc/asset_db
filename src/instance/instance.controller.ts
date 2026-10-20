@@ -14,7 +14,7 @@ import {
 import { InstanceService } from "./instance.service.js";
 
 import { instance_schema } from "./instance.schema.js";
-import type { AssetId } from "../asset/asset.domain.js";
+import type { AssetId, AssetTag } from "../asset/asset.domain.js";
 import type { InstanceId } from "./instance.domain.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
@@ -46,28 +46,28 @@ export class InstanceController {
    * Returns all Instances of an Asset.
    * Only Builders can access this endpoint.
    */
-  @Get(":type")
+  @Get(":assetTag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async getAll(@Param("type") type: string) {
-    return this.service.getAll(type as AssetId);
+  async getAll(@Param("assetTag") assetTag: string) {
+    return this.service.getAll(assetTag as AssetTag);
   }
 
   /**
-   * Returns an Instance by Asset type and ID.
-   * Only Builder can access this endpoint.
+   * Returns an Instance by its tag.
+   * Only Builders can access this endpoint.
    */
-  @Get(":type/:id")
+  @Get(":assetTag/:index")
   @UseGuards(RolesGuard)
   @Roles("Builder")
   async get(
-    @Param("type") type: string,
-    @Param("id") id: string,
+    @Param("assetTag") assetTag: string,
+    @Param("index") index: string,
   ) {
-    const instance = await this.service.get(
-      type as AssetId,
-      id as InstanceId,
-    );
+    const instance = await this.service.get({
+      assetTag: assetTag as AssetTag,
+      index: Number(index),
+    });
 
     if (!instance) {
       throw new NotFoundException("Instance not found");
@@ -77,21 +77,19 @@ export class InstanceController {
   }
 
   /**
-   * Deletes an Instance by Asset type and ID.
-   * Only Builder can access this endpoint.
+   * Deletes an Instance by its tag.
+   * Only Builders can access this endpoint.
    */
-  @Delete(":type/:id")
+  @Delete(":assetTag/:index")
   @UseGuards(RolesGuard)
   @Roles("Builder")
   async delete(
-    @Param("type") type: string,
-    @Param("id") id: string,
+    @Param("assetTag") assetTag: string,
+    @Param("index") index: string,
   ) {
-    await this.service.delete(
-      type as AssetId,
-      id as InstanceId,
-    );
-
-    return;
+    await this.service.delete({
+      assetTag: assetTag as AssetTag,
+      index: Number(index),
+    });
   }
 }

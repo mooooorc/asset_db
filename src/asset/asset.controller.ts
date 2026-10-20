@@ -13,7 +13,7 @@ import {
 
 import { AssetService } from "./asset.service.js";
 import { asset_schema } from "./asset.schema.js";
-import type { AssetId } from "./asset.domain.js";
+import type { AssetId, AssetTag } from "./asset.domain.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 
@@ -56,11 +56,11 @@ export class AssetController {
    * Returns an Asset by ID.
    * Only Builders can access this endpoint.
    */
-  @Get(":id")
+  @Get(":tag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async get(@Param("id") id: string) {
-    const asset = await this.service.get(id as AssetId);
+  async get(@Param("tag") tag: string) {
+    const asset = await this.service.get(tag as AssetTag);
 
     if (!asset) {
       throw new NotFoundException("Asset not found");
@@ -70,14 +70,14 @@ export class AssetController {
   }
 
   /**
-   * Deletes an Asset by ID.
+   * Deletes an Asset by tag.
    * Only Builders can access this endpoint.
    */
-  @Delete(":id")
+  @Delete(":tag")
   @UseGuards(RolesGuard)
   @Roles("Builder")
-  async delete(@Param("id") id: string) {
-    await this.service.delete(id as AssetId);
+  async delete(@Param("tag") tag: string) {
+    await this.service.delete(tag as AssetTag);
 
     return;
   }
