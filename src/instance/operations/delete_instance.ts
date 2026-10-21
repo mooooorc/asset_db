@@ -1,29 +1,23 @@
-import { find_asset } from "../../asset/operations/find_asset.js";
+
 import { client } from "../../db/client.js";
 
-import type { InstanceId, InstanceTag } from "../instance.domain.js";
+import type { InstanceId } from "../instance.domain.js";
 import { find_instance } from "./find_instance.js";
 
 export const delete_instance = {
-  self: async (tag: InstanceTag): Promise<void> => {
-    const assetId = await find_asset.id_by_tag(tag.assetTag);
+  self: async (id: InstanceId): Promise<void> => {
+    
 
-    if (!assetId) {
-      throw new Error(`Asset not found: ${tag.assetTag}`);
-    }
+    const asset_id = find_instance.asset_id(id);
 
-    const instanceId = await find_instance.id_by_tag(tag);
-
-    if (!instanceId) {
-      throw new Error(`Instance not found: ${tag.assetTag}#${tag.index}`);
-    }
+  
 
     await client.query(
       `
-      DELETE FROM "${assetId}"
+      DELETE FROM "${asset_id}"
       WHERE "id" = $1
     `,
-      [instanceId],
+      [id],
     );
   },
 

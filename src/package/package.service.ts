@@ -1,17 +1,13 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { save_package } from "./operations/save_package.js";
 import { get_package } from "./operations/get_package.js";
-
-import { AssetService } from "../asset/asset.service.js";
 import { InstanceService } from "../instance/instance.service.js";
 
 import { delete_package } from "./operations/delete_package.js";
 import type {
-  Package,
+  ConditionedPackage,
   PackageConditionOperator,
-
   PackageData,
-
   PackageId,
   PackageTag,
 } from "./package.domain.js";
@@ -19,96 +15,109 @@ import type {
 import type { AssetId } from "../asset/asset.domain.js";
 import type { DefinitionId } from "../definition/definition.domain.js";
 import { client } from "../db/client.js";
-import type { InstanceTag } from "../instance/instance.domain.js";
-import { find_instance } from "../instance/operations/find_instance.js";
-import { find_asset } from "../asset/operations/find_asset.js";
+import type { InstanceId, InstanceTag } from "../instance/instance.domain.js";
 import { select_instances } from "./operations/select_instances.js";
 import { add_instance } from "./operations/add_instance.js";
 import { build_package } from "./operations/build_package.js";
+import { DefinitionService } from "../definition/definition.service.js";
+
+import { PersistenceService } from "../persistence/persistence.service.js";
 
 @Injectable()
 export class PackageService {
   constructor(
-    @Inject(AssetService)
-    private readonly assetService: AssetService,
     @Inject(InstanceService)
     private readonly instanceService: InstanceService,
+    @Inject(DefinitionService)
+    private readonly definitionService: DefinitionService,
+    
+    @Inject(PersistenceService)
+    private readonly persistenceService: PersistenceService
+    
   ) {}
 
   save(pack: PackageData) {
-    return save_package.self(pack);
+    return save_package.self(pack, this.definitionService, this.persistenceService);
   }
 
-  async get(tag: PackageTag) {
+  async get_linked(tag: PackageTag) {
     const id = await this.get_id(tag);
 
-    return get_package.self(id);
+    return get_package.linked(id);
+  }
+
+  async get_conditioned(tag: PackageTag) {
+    const id = await this.get_id(tag);
+
+    return get_package.conditioned(id);
   }
 
   getAll() {
-    return get_package.all()
+    return get_package.all();
   }
 
   async prepare(tag: PackageTag) {
     const id = await this.get_id(tag);
-    return build_package.public(id, this.assetService, this.instanceService, this);
+    return build_package.public(id, this.instanceService, this);
   }
+
+  /*
+  async insert(pack: ConditionedPackage) {
+    await insert_package.self(pack);
+    await insert_package.discussion_counter(pack.id);
+  }
+    */
 
   async getContent(tag: PackageTag) {
     const id = await this.get_id(tag);
 
-    return get_package.content(
-      id,
-      this.assetService,
-      this.instanceService,
-      this,
-    );
+    return get_package.content(id, this.instanceService, this);
   }
-  async addInstance(tag: PackageTag, instance: InstanceTag) {
-    const packageId = await this.get_id(tag);
-    const instanceOutput = await this.instanceService.get(instance);
 
-    if (!instanceOutput) {
-      throw new NotFoundException("Instance not found");
+  async addInstance(tag: PackageTag, instance_tag: InstanceTag) {
+    const package_id = await this.get_id(tag);
+    const instance = await this.instanceService.get(instance_tag);
+
+    if (!instance) {
+      throw new NotFoundException(`Instance not found: ${instance_tag}`);
     }
 
-    const assetId = await find_asset.id_by_tag(instance.assetTag);
-
-    if (!assetId) {
-      throw new NotFoundException(`Asset not found: ${instance.assetTag}`);
-    }
-
-    const instanceId = await find_instance.id_by_tag(instance);
-
-    if (!instanceId) {
-      throw new NotFoundException(
-        `Instance not found: ${instance.assetTag}:${instance.index}`,
-      );
-    }
+    const asset_id = await this.instanceService.find_asset_id(instance.id);
 
     return add_instance.to_package(
-      packageId,
-      assetId,
-      instanceId,
-      instanceOutput.status,
+      package_id,
+      asset_id,
+      instance.id,
+      instance.status,
     );
   }
 
-  async addToBlacklist(tag: PackageTag, instance: InstanceTag) {
-    const id = await this.get_id(tag);
-
-    return add_instance.to_blacklist(id, instance);
-  }
-
-  async removeFromBlacklist(tag: PackageTag, instance: InstanceTag) {
-    const id = await this.get_id(tag);
-    const instance_id = await find_instance.id_by_tag(instance);
+  async addToBlacklist(tag: PackageTag, instance_tag: InstanceTag) {
+    const package_id = await this.get_id(tag);
+    const instance_id = await this.instanceService.get_id_by_tag(instance_tag);
 
     if (!instance_id) {
-      throw new NotFoundException(`Instance not found: ${instance}`);
+      throw new NotFoundException(`Instance not found: ${instance_tag}`);
     }
 
-    return delete_package.instance_from_blacklist(id, instance_id, instance.assetTag);
+    const asset_id = await this.instanceService.find_asset_id(instance_id);
+
+    return add_instance.to_blacklist(package_id, instance_id, asset_id);
+  }
+
+  async removeFromBlacklist(tag: PackageTag, instance_tag: InstanceTag) {
+    const package_id = await this.get_id(tag);
+    const instance_id = await this.instanceService.get_id_by_tag(instance_tag);
+    if (!instance_id) {
+      throw new NotFoundException(`Instance not found: ${instance_tag}`);
+    }
+    const asset_id = await this.instanceService.find_asset_id(instance_id);
+
+    return delete_package.instance_from_blacklist(
+      package_id,
+      instance_id,
+      asset_id,
+    );
   }
 
   async getBlacklist(tag: PackageTag) {
@@ -120,12 +129,7 @@ export class PackageService {
   async getInstances(tag: PackageTag) {
     const id = await this.get_id(tag);
 
-    return get_package.instances(
-      id,
-      this.assetService,
-      this.instanceService,
-      this,
-    );
+    return get_package.instances(id, this.instanceService, this);
   }
 
   selectInstancesByCondition(

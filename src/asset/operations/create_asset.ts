@@ -1,11 +1,7 @@
 import { client } from "../../db/client.js";
 import type { Definition } from "../../definition/definition.domain.js";
-import { find_definition } from "../../definition/operations/find_definition.js";
-import { get_definition } from "../../definition/operations/get_definition.js";
-
-
 import type {
-  Package,
+  LinkedPackage,
   PackageId,
   PackageTag,
 } from "../../package/package.domain.js";
@@ -17,17 +13,24 @@ import type {
 } from "../asset.domain.js";
 import { insert_asset } from "./insert_asset.js";
 import { get_asset } from "./get_asset.js";
-
 import { randomUUID } from "node:crypto";
-import { insert_package } from "../../package/operations/insert_package.js";
+import type { DefinitionService } from "../../definition/definition.service.js";
+import { linked_package } from "./linked_package.js";
+import type { PersistenceService } from "../../persistence/persistence.service.js";
+
 
 export const create_asset = {
-  self: async (data: AssetData): Promise<AssetData> => {
+  self: async (
+    data: AssetData, 
+    definitionService: DefinitionService,
+    persistenceService: PersistenceService
+    
+  ): Promise<AssetData> => {
     const id = randomUUID() as AssetId;
 
     const definitions = await Promise.all(
       data.definitions.map(async (definition) => {
-        const definitionId = await find_definition.id_by_tag(definition.tag);
+        const definitionId = await definitionService.find_id_by_tag(definition.tag);
 
         if (!definitionId) {
           throw new Error(`Definition not found: ${definition.tag}`);
@@ -57,7 +60,7 @@ export const create_asset = {
       await insert_asset.definitions(asset);
 
       const resolvedDefinitions = await Promise.all(
-        asset.definitions.map(({ id }) => get_definition.self(id)),
+        asset.definitions.map(({ id }) => definitionService.get_by_id(id)),
       );
 
       const columns = (
@@ -66,22 +69,24 @@ export const create_asset = {
             .filter(
               (definition): definition is Definition => definition !== null,
             )
-            .map((definition) => get_asset.columns(definition)),
+            .map((definition) => get_asset.columns(definition, definitionService)),
         )
       ).flat();
 
       await create_asset.table(asset, columns);
 
       if (asset.exposeAsPackage) {
-        const pack: Package = {
+        const pack: LinkedPackage = {
+          
           id: randomUUID() as PackageId,
           tag: asset.tag as unknown as PackageTag,
+          type: "Linked",
           name: asset.name,
           linkedAsset: asset.id,
         };
 
-        await insert_package.self(pack);
-        await insert_package.discussion_counter(pack.id);
+        await persistenceService.persist_linked_package(pack);
+        
       }
 
       await client.query("COMMIT");

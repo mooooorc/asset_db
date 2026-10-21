@@ -3,21 +3,14 @@ import { client } from "../../db/client.js";
 import type { DefinitionId } from "../../definition/definition.domain.js";
 import type { PackageConditionOperator } from "../package.domain.js";
 import type { InstanceService } from "../../instance/instance.service.js";
-import type {
-  InstanceId,
-  InstanceTag,
-} from "../../instance/instance.domain.js";
-import { find_asset } from "../../asset/operations/find_asset.js";
-
+import type { InstanceId } from "../../instance/instance.domain.js";
 
 export const select_instances = (() => {
-
   const resolve_contains_operator = async (
     asset_id: AssetId,
     instance_id: InstanceId,
     def_id: DefinitionId,
-    instanceService: InstanceService,
-  ): Promise<InstanceTag[]> => {
+  ): Promise<InstanceId[]> => {
     const result = await client.query(
       `
       SELECT
@@ -36,57 +29,28 @@ export const select_instances = (() => {
       [def_id, asset_id, instance_id],
     );
 
-    const instances = await Promise.all(
-      result.rows.map(async (row): Promise<InstanceTag | null> => {
-        const isA =
-          row.asset_a_id === asset_id && row.instance_a_id === instance_id;
+    return result.rows.map((row) => {
+      const isA =
+        row.asset_a_id === asset_id && row.instance_a_id === instance_id;
 
-        const relatedAssetId = (
-          isA ? row.asset_b_id : row.asset_a_id
-        ) as AssetId;
-        const relatedInstanceId = (
-          isA ? row.instance_b_id : row.instance_a_id
-        ) as InstanceId;
-
-        const relatedAssetTag = await find_asset.tag_by_id(relatedAssetId);
-
-        if (!relatedAssetTag) return null;
-
-        const indexResult = await client.query(
-          `SELECT "index" FROM "${relatedAssetId}" WHERE id = $1`,
-          [relatedInstanceId],
-        );
-
-        const index = indexResult.rows[0]?.index;
-
-        if (index == null) return null;
-
-        return {
-          assetTag: relatedAssetTag,
-          index: Number(index),
-        };
-      }),
-    );
-
-    return ignore_unhealthy(
-      instances.filter((tag): tag is InstanceTag => tag !== null),
-      instanceService,
-    );
+      return (isA ? row.instance_b_id : row.instance_a_id) as InstanceId;
+    });
   };
 
   const ignore_unhealthy = async (
-    instances: InstanceTag[],
+    instance_ids: InstanceId[],
     instanceService: InstanceService,
-  ): Promise<InstanceTag[]> => {
+  ): Promise<InstanceId[]> => {
     const results = await Promise.all(
-      instances.map(async (tag) => {
-        const instance = await instanceService.get(tag);
+      instance_ids.map(async (id) => {
+        const asset_id = await instanceService.find_asset_id(id);
+        const instance = await instanceService.get_by_id(asset_id, id);
 
-        return instance?.status === "healthy" ? tag : null;
+        return instance?.status === "healthy" ? id : null;
       }),
     );
 
-    return results.filter((tag): tag is InstanceTag => tag !== null);
+    return results.filter((id): id is InstanceId => id !== null);
   };
 
   return {
@@ -97,24 +61,19 @@ export const select_instances = (() => {
       value: unknown,
       instanceService: InstanceService,
       target_instance_id?: InstanceId,
-    ): Promise<InstanceTag[]> => {
+    ): Promise<InstanceId[]> => {
       if (operator === "contains") {
         if (!target_instance_id) {
           throw new Error("Target instance ID is required for contains");
         }
 
-        return resolve_contains_operator(
+        const instances = await resolve_contains_operator(
           asset_id,
           target_instance_id,
           def_id,
-          instanceService,
         );
-      }
 
-      const asset_tag = await find_asset.tag_by_id(asset_id);
-
-      if (!asset_tag) {
-        throw new Error(`Asset not found: ${asset_id}`);
+        return ignore_unhealthy(instances, instanceService);
       }
 
       const operators = {
@@ -126,21 +85,18 @@ export const select_instances = (() => {
 
       const result = await client.query(
         `
-      SELECT "id", "index"
+      SELECT "id"
       FROM "${asset_id}"
       WHERE "${def_id}" ${operators[operator]} $1
     `,
         [value],
       );
 
-      const instances: InstanceTag[] = result.rows.map((row) => ({
-        assetTag: asset_tag,
-        index: Number(row.index),
-      }));
+      const instance_ids: InstanceId[] = result.rows.map(
+        (row) => row.id as InstanceId,
+      );
 
-      return ignore_unhealthy(instances, instanceService);
+      return ignore_unhealthy(instance_ids, instanceService);
     },
   };
 })();
-
-

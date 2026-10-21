@@ -13,7 +13,7 @@ import {
 
 import { AssetService } from "./asset.service.js";
 import { asset_schema } from "./asset.schema.js";
-import type { AssetId, AssetTag } from "./asset.domain.js";
+import type { AssetTag } from "./asset.domain.js";
 import { Roles, RolesGuard } from "../user/auth/roles.guard.js";
 
 
@@ -22,6 +22,8 @@ export class AssetController {
   constructor(
     @Inject(AssetService)
     private readonly service: AssetService,
+
+    
   ) {}
 
   /**

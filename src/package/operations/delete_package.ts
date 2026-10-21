@@ -1,8 +1,6 @@
-import type { AssetTag } from "../../asset/asset.domain.js";
-import { find_asset } from "../../asset/operations/find_asset.js";
+import type { AssetId } from "../../asset/asset.domain.js";
 import { client } from "../../db/client.js";
 import type { InstanceId } from "../../instance/instance.domain.js";
-import { find_instance } from "../../instance/operations/find_instance.js";
 import type { PackageId } from "../package.domain.js";
 
 export const delete_package = {
@@ -18,20 +16,9 @@ export const delete_package = {
 
   instance_from_blacklist: async (
     id: PackageId,
-    instanceId: InstanceId,
-    assetTag: AssetTag,
+    instance_id: InstanceId,
+    asset_id: AssetId
   ): Promise<void> => {
-    const asset_id = await find_asset.id_by_tag(assetTag);
-
-    if (!asset_id) {
-      throw new Error(`Asset not found: ${assetTag}`);
-    }
-
-    const instance = await find_instance.by_id(instanceId, asset_id);
-
-    if (!instance) {
-      throw new Error(`Instance not found: ${assetTag}:${instanceId}`);
-    }
 
     await client.query(
       `
@@ -40,7 +27,7 @@ export const delete_package = {
       AND asset_id = $2
       AND instance_id = $3
     `,
-      [id, asset_id, instanceId],
+      [id, asset_id, instance_id],
     );
   },
 };

@@ -11,16 +11,25 @@ import { delete_asset } from "./operations/delete_asset.js";
 import { get_asset } from "./operations/get_asset.js";
 import { find_asset } from "./operations/find_asset.js";
 import { create_asset } from "./operations/create_asset.js";
+import { PersistenceService } from "../persistence/persistence.service.js";
+
 
 @Injectable()
 export class AssetService {
   constructor(
     @Inject(DefinitionService)
     private readonly definitionService: DefinitionService,
+
+    @Inject(PersistenceService)
+    private readonly persistenceModule: PersistenceService
   ) {}
 
   async get(tag: AssetTag) {
     const id = await this.get_id(tag);
+    return get_asset.self(id);
+  }
+
+  get_by_id(id: AssetId) {
     return get_asset.self(id);
   }
 
@@ -35,9 +44,19 @@ export class AssetService {
   getDefinition(tag: DefinitionTag) {
     return this.definitionService.get(tag);
   }
-
+  
+  
   save(asset: AssetData) {
-    return create_asset.self(asset);
+    return create_asset.self(asset, this.definitionService, this.persistenceModule);
+  }
+    
+
+  find_id_by_tag(tag: AssetTag){
+    return find_asset.id_by_tag(tag)
+  }
+
+  find_tag_by_id(id: AssetId) {
+    return find_asset.tag_by_id(id);
   }
 
   async delete(tag: AssetTag) {
