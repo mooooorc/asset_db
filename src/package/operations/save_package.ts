@@ -1,48 +1,30 @@
 import { client } from "../../db/client.js";
-import type { Package, PackageData, PackageId } from "../package.domain.js";
-import { insert_package } from "./insert_package.js";
+import type { ConditionedPackage, PackageData } from "../package.domain.js";
 import { build_package } from "./build_package.js";
+import type { DefinitionService } from "../../definition/definition.service.js";
+import type { PersistenceService } from "../../persistence/persistence.service.js";
 
 
 export const save_package = {
-
-  self: async (data: PackageData): Promise<Package> => {
-    const pack = await build_package.self(data);
+  self: async (
+    data: PackageData,
+    definitionService: DefinitionService,
+    persistenceService: PersistenceService
+  ): Promise<ConditionedPackage> => {
+    const pack = await build_package.self(data, definitionService);
 
     await client.query("BEGIN");
 
-    try{
-      await insert_package.self(pack);
-      await insert_package.discussion_counter(pack.id);
+    try {
+      await persistenceService.persist_conditioned_package(pack);
       await client.query("COMMIT");
 
       return pack;
-    } catch(error) {
+    } catch (error) {
       await client.query("ROLLBACK");
       throw error;
     }
   },
 
-  conditions: async (id: PackageId, conditions: Package["conditions"]):Promise<void> => {
-    for (const condition of conditions ?? []) {
-      await client.query(
-      `
-        INSERT INTO package_conditions (
-          package_id,
-          definition_id,
-          operator,
-          value
-        )
-        VALUES ($1, $2, $3, $4)
-      `,
-      [
-        id,
-        condition.definition,
-        condition.operator,
-        JSON.stringify(condition.value),
-      ],
-    );
-    }
-  }
-}
-
+  
+};

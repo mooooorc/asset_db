@@ -4,10 +4,10 @@ import type {
   DefinitionId,
   DefinitionTag,
 } from "../../definition/definition.domain.js";
-import { get_definition } from "../../definition/operations/get_definition.js";
+import type { DefinitionService } from "../../definition/definition.service.js";
+
 import type {
   Asset,
-  AssetData,
   AssetId,
   AssetTableColumn,
   AssetTag,
@@ -113,7 +113,10 @@ export const get_asset = (() => {
       }));
     },
 
-    columns: async (def: Definition): Promise<AssetTableColumn[]> => {
+    columns: async (
+      def: Definition,
+      definitionService: DefinitionService,
+    ): Promise<AssetTableColumn[]> => {
       if (def.type !== "composite") {
         return def.type === "relation"
           ? []
@@ -131,13 +134,13 @@ export const get_asset = (() => {
       }
 
       const defs = await Promise.all(
-        def.definitions.map((id) => get_definition.self(id)),
+        def.definitions.map((id) => definitionService.get_by_id(id)),
       );
 
       const columns = await Promise.all(
         defs
           .filter((def): def is Definition => def !== null)
-          .map((def) => get_asset.columns(def)),
+          .map((def) => get_asset.columns(def, definitionService)),
       );
 
       return columns.flat();
@@ -156,6 +159,7 @@ export const get_asset = (() => {
       );
 
       return result.rows.map((row) => row.tag as AssetTag);
-    },
+    }
   };
 })();
+

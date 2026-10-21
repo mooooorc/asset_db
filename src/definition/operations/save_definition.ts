@@ -1,10 +1,10 @@
 import { client } from "../../db/client.js";
-import type { DefinitionData } from "../definition.domain.js";
+import type { Definition, DefinitionData, DefinitionId } from "../definition.domain.js";
 import { randomUUID } from "node:crypto";
 import { find_definition } from "./find_definition.js";
 
 export const save_definition = async (
-  definition: DefinitionData,
+  data: DefinitionData,
 ): Promise<DefinitionData> => {
 
 
@@ -17,15 +17,15 @@ export const save_definition = async (
     `,
     [
       id,
-      definition.tag,
-      definition.name,
-      definition.description ?? null,
-      "type" in definition ? definition.type : null,
+      data.tag,
+      data.name,
+      data.description ?? null,
+      data.type
     ],
   );
 
-  if ("definitions" in definition) {
-    for (const childTag of definition.definitions) {
+  if ("definitions" in data) {
+    for (const childTag of data.definitions) {
       const childId = await find_definition.id_by_tag(childTag);
 
       if (!childId) {
@@ -45,5 +45,7 @@ export const save_definition = async (
     }
   }
 
-  return definition;
+
+
+  return data;
 };

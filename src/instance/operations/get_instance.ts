@@ -1,21 +1,24 @@
-import type { AssetId, AssetTag } from "../../asset/asset.domain.js";
+import type { AssetId } from "../../asset/asset.domain.js";
+import type { AssetService } from "../../asset/asset.service.js";
 import { find_asset } from "../../asset/operations/find_asset.js";
 import { client } from "../../db/client.js";
+import type { DefinitionService } from "../../definition/definition.service.js";
 import type { Instance, InstanceId } from "../instance.domain.js";
-import { find_instance } from "./find_instance.js";
+import { build_instance } from "./build_instance.js";
 import { map_property_tags } from "./utils/map_property_tags.js";
 
 export const get_instance = {
-  self: async (assetId: AssetId, id: InstanceId): Promise<Instance | null> => {
-    const instance = await find_instance.by_id(id, assetId);
-
-    if (!instance) return null;
-
+  self: async (
+    asset_id: AssetId,
+    id: InstanceId,
+    definitionService: DefinitionService,
+    assetService: AssetService,
+  ): Promise<Instance | null> => {
     const result = await client.query(
       `
       SELECT *
-      FROM "${assetId}"
-      WHERE "id" = $1
+      FROM "${asset_id}"
+      WHERE id = $1
     `,
       [id],
     );
@@ -23,29 +26,19 @@ export const get_instance = {
     const row = result.rows[0];
     if (!row) return null;
 
-    const { id: _id, index: _index, ...properties } = row;
+    const { id: _id, index, ...properties } = row;
 
-    const [relations, issues, assetTag] = await Promise.all([
-      get_instance.relations(assetId, id),
-      get_instance.issues(id),
-      find_asset.tag_by_id(assetId),
-    ]);
+    const asset_tag = await assetService.find_tag_by_id(asset_id);
+    if (!asset_tag) return null;
 
-    if (!assetTag) return null;
-
-    return {
+    return build_instance.self(
       id,
-      asset: assetId,
-      tag: {
-        assetTag,
-        index: instance.tag.index,
-      },
-      properties: await map_property_tags({
-        ...properties,
-        ...relations,
-      }),
-      status: issues.length === 0 ? "healthy" : "unhealthy",
-    };
+      asset_id,
+      asset_tag,
+      Number(index),
+      properties,
+      definitionService,
+    );
   },
 
   issues: async (id: InstanceId) => {
@@ -62,11 +55,13 @@ export const get_instance = {
   },
 
   relations: async (
-    assetId: AssetId,
-    id: InstanceId,
-  ): Promise<Record<string, string[]>> => {
-    const result = await client.query(
-      `
+  assetId: AssetId,
+  id: InstanceId,
+): Promise<Record<string, string[]>> => {
+  const instanceUuid = id.split("/")[1];
+
+  const result = await client.query(
+    `
     SELECT
       definition_id,
       asset_a_id,
@@ -79,37 +74,42 @@ export const get_instance = {
       OR
       (asset_b_id = $1 AND instance_b_id = $2)
     `,
-      [assetId, id],
+    [assetId, instanceUuid],
+  );
+
+  const relations: Record<string, string[]> = {};
+
+  for (const row of result.rows) {
+    const isA =
+      row.asset_a_id === assetId &&
+      row.instance_a_id === instanceUuid;
+
+    const targetAssetId = (isA ? row.asset_b_id : row.asset_a_id) as AssetId;
+    const targetInstanceUuid = isA
+      ? row.instance_b_id
+      : row.instance_a_id;
+
+    const indexResult = await client.query(
+      `SELECT "index" FROM "${targetAssetId}" WHERE id = $1`,
+      [targetInstanceUuid],
     );
 
-    const relations: Record<string, string[]> = {};
+    const index = indexResult.rows[0]?.index;
 
-    for (const row of result.rows) {
-      const isA = row.asset_a_id === assetId && row.instance_a_id === id;
+    if (index == null) continue;
 
-      const targetAssetId = (isA ? row.asset_b_id : row.asset_a_id) as AssetId;
+    const definitionRelations = relations[row.definition_id] ?? [];
+    definitionRelations.push(`${targetAssetId}:${Number(index)}`);
+    relations[row.definition_id] = definitionRelations;
+  }
 
-      const targetInstanceId = (
-        isA ? row.instance_b_id : row.instance_a_id
-      ) as InstanceId;
-
-      const targetInstance = await find_instance.by_id(
-        targetInstanceId,
-        targetAssetId,
-      );
-
-      if (!targetInstance) continue;
-
-      const definitionRelations = relations[row.definition_id] ?? [];
-
-      definitionRelations.push(`${targetAssetId}:${targetInstance.tag.index}`);
-
-      relations[row.definition_id] = definitionRelations;
-    }
-
-    return relations;
-  },
-  all: async (assetId: AssetId): Promise<Instance[]> => {
+  return relations;
+},
+  
+  all: async (
+    assetId: AssetId,
+    definitionService: DefinitionService,
+  ): Promise<Instance[]> => {
     const result = await client.query(
       `
       SELECT *
@@ -123,7 +123,10 @@ export const get_instance = {
         const instanceId = id as InstanceId;
 
         const [relations, issues] = await Promise.all([
-          get_instance.relations(assetId, instanceId),
+          get_instance.relations(
+            assetId,
+            instanceId,
+          ),
           get_instance.issues(instanceId),
         ]);
 
@@ -134,10 +137,13 @@ export const get_instance = {
             assetTag: (await find_asset.tag_by_id(assetId))!,
             index: Number(index),
           },
-          properties: await map_property_tags({
-            ...properties,
-            ...relations,
-          }),
+          properties: await map_property_tags(
+            {
+              ...properties,
+              ...relations,
+            },
+            definitionService,
+          ),
           status: issues.length === 0 ? "healthy" : "unhealthy",
         };
       }),

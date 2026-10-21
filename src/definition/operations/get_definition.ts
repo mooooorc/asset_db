@@ -1,7 +1,6 @@
 import { client } from "../../db/client.js";
 import type {
   Definition,
-  DefinitionData,
   DefinitionId,
   DefinitionTag,
   DefinitionValueType,

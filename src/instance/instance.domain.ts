@@ -11,7 +11,6 @@ export type InstanceTag = {
 
 
 export type Instance = {
-  asset: AssetId;
   id: InstanceId;
   tag: InstanceTag;
   properties: Record<string, unknown>;
@@ -29,3 +28,11 @@ export type InstanceToCheck = Pick<
   Instance,
   "id" | "tag" | "properties"
 >;
+
+
+
+export const instance_to_package_content = (
+  instance: Instance,
+): Record<string, unknown> => {
+  return instance.properties;
+};

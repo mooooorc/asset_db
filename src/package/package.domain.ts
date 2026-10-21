@@ -10,25 +10,32 @@ export type PackageTag = string & {
   readonly __brand: "PackageTag";
 }
 
-export type Package = {
+export type ConditionedPackage = {
   id: PackageId;
   tag: PackageTag;
+  type: "Conditioned";
   name: string;
-  linkedAsset?: AssetId;
-  conditions?: {
-    definition: DefinitionId;
-    operator: PackageConditionOperator;
+  conditions: {
+    definition: DefinitionId,
+    operator: PackageConditionOperator,
     value: unknown;
   }[];
-  blacklist?: InstanceTag[];
+  blacklist: InstanceTag[];
 };
+
+export type LinkedPackage = {
+  id: PackageId;
+  type: "Linked"
+  tag: PackageTag;
+  name: string;
+  linkedAsset: AssetId;
+}
 
 export type PackageData = {
   tag: PackageTag;
   name: string;
-  linkedAsset?: AssetTag;
-  conditions?: PackageCondition[];
-  blacklist?: InstanceTag[];
+  conditions: PackageCondition[];
+
 }
 
 export type PackageInstance = {
@@ -63,8 +70,3 @@ export type PackageContent = {
   [asset:string]: Record<string, unknown>[]
 };
 
-export const instance_to_package_content = (
-  instance: Instance,
-): Record<string, unknown> => {
-  return instance.properties;
-};

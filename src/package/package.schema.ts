@@ -28,6 +28,6 @@ export const package_schema = z.object({
         value: z.unknown(),
       }),
     )
-    .optional(),
+    
 });
 

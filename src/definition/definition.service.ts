@@ -3,8 +3,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { save_definition } from "./operations/save_definition.js";
 import { delete_definition } from "./operations/delete_definition.js";
 import type {
-  DefinitionId,
   DefinitionData,
+  DefinitionId,
   DefinitionTag,
 } from "./definition.domain.js";
 import { find_definition } from "./operations/find_definition.js";
@@ -19,6 +19,10 @@ export class DefinitionService {
       throw new NotFoundException(`Definition not found: ${tag}`);
     }
 
+    return get_definition.self(id);
+  }
+
+  get_by_id(id: DefinitionId) {
     return get_definition.self(id);
   }
 
@@ -39,4 +43,15 @@ export class DefinitionService {
 
     return delete_definition(id);
   }
+
+  find_tag_by_id(id: DefinitionId) {
+    return find_definition.tag_by_id(id);
+  }
+
+  find_id_by_tag(tag: DefinitionTag) {
+    return find_definition.id_by_tag(tag);
+  }
+
+  
+
 }
