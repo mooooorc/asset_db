@@ -15,7 +15,6 @@ import { insert_asset } from "./insert_asset.js";
 import { get_asset } from "./get_asset.js";
 import { randomUUID } from "node:crypto";
 import type { DefinitionService } from "../../definition/definition.service.js";
-import { linked_package } from "./linked_package.js";
 import type { PersistenceService } from "../../persistence/persistence.service.js";
 
 

@@ -7,7 +7,6 @@ import {
   instance_to_package_content,
   type Instance,
   type InstanceId,
-  type InstanceTag,
 } from "../../instance/instance.domain.js";
 import type { InstanceService } from "../../instance/instance.service.js";
 
@@ -18,22 +17,26 @@ import {
   type PackageContent,
   type LinkedPackage,
 } from "../package.domain.js";
-import type { PackageService } from "../package.service.js";
+import { select_instances } from "./select_instances.js";
 
 export const get_package = (() => {
+
   const resolve_individual_condition = async (
     condition: NonNullable<ConditionedPackage["conditions"]>[number],
     assetId: AssetId,
     definitionId: DefinitionId,
-    packageService: PackageService,
     instanceService: InstanceService,
   ): Promise<Instance[]> => {
-    const instance_ids = await packageService.selectInstancesByCondition(
+
+
+
+    const instance_ids = await select_instances.by_condition(
       assetId,
       definitionId,
       condition.operator,
       condition.value,
-    );
+      instanceService
+    )
 
     const instances = await Promise.all(
       instance_ids.map(async (id) => {
@@ -49,7 +52,6 @@ export const get_package = (() => {
 
   const resolve_conditions = async (
     conditions: NonNullable<ConditionedPackage["conditions"]>,
-    packageService: PackageService,
     instanceService: InstanceService,
   ): Promise<Instance[]> => {
     const resolved_conditions = await Promise.all(
@@ -71,7 +73,6 @@ export const get_package = (() => {
               condition,
               id,
               condition.definition,
-              packageService,
               instanceService,
             ),
           ),
@@ -98,7 +99,7 @@ export const get_package = (() => {
         `
         SELECT id, tag, name, linked_asset_id
         FROM packages
-        WHERE id = $1
+        WHERE id = $1 AND linked_asset_id IS NOT NULL
       `,
         [id],
       );
@@ -120,7 +121,7 @@ export const get_package = (() => {
         `
         SELECT id, tag, name, linked_asset_id
         FROM packages
-        WHERE id = $1
+        WHERE id = $1 AND linked_asset_id IS NULL
       `,
         [id],
       );
@@ -219,13 +220,11 @@ export const get_package = (() => {
 
     content: async (
       id: PackageId,
-      instanceService: InstanceService,
-      packageService: PackageService,
+      instanceService: InstanceService
     ): Promise<PackageContent> => {
       const instances = await get_package.instances(
         id,
-        instanceService,
-        packageService,
+        instanceService
       );
 
       const content: PackageContent = {};
@@ -251,7 +250,6 @@ export const get_package = (() => {
     instances: async (
       id: PackageId,
       instanceService: InstanceService,
-      packageService: PackageService,
     ): Promise<Instance[]> => {
       const linked_package = await get_package.linked(id);
 
@@ -304,7 +302,6 @@ export const get_package = (() => {
       const condition_instances = conditioned_package.conditions.length
         ? await resolve_conditions(
             conditioned_package.conditions,
-            packageService,
             instanceService,
           )
         : [];

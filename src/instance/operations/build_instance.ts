@@ -1,7 +1,8 @@
 import type { AssetId, AssetTag } from "../../asset/asset.domain.js";
 import type { DefinitionService } from "../../definition/definition.service.js";
 import type { Instance, InstanceId } from "../instance.domain.js";
-import { get_instance } from "./get_instance.js";
+
+import { get_metadata } from "./get_metadata.js";
 import { map_property_tags } from "./utils/map_property_tags.js";
 
 export const build_instance = {
@@ -14,11 +15,11 @@ export const build_instance = {
     definitionService: DefinitionService,
   ): Promise<Instance> => {
     const [relations, issues] = await Promise.all([
-      get_instance.relations(
+      get_metadata.relations(
         asset_id,
         id
       ),
-      get_instance.issues(id),
+      get_metadata.issues(id),
     ]);
 
     return {
