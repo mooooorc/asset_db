@@ -1,6 +1,5 @@
 import type { InstanceService } from "../../instance/instance.service.js";
 import type { DefinitionService } from "../../definition/definition.service.js";
-import type { PackageService } from "../package.service.js";
 
 import type {
   ConditionedPackage,
@@ -47,7 +46,6 @@ export const build_package = {
   public: async (
     id: PackageId,
     instanceService: InstanceService,
-    packageService: PackageService,
   ): Promise<PublicPackage | null> => {
     const linked = await get_package.linked(id);
     const conditioned = linked ? null : await get_package.conditioned(id);
@@ -59,7 +57,6 @@ export const build_package = {
     const content = await get_package.content(
       id,
       instanceService,
-      packageService,
     );
 
     const items = Object.values(content).reduce(

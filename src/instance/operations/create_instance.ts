@@ -18,10 +18,10 @@ import type {
 import { check_instance } from "./check_instance.js";
 import { find_instance } from "./find_instance.js";
 import type { AssetId } from "../../asset/asset.domain.js";
-import { insert_instance } from "./insert_instance.js";
 import type { DefinitionService } from "../../definition/definition.service.js";
-import type { InstanceService } from "../instance.service.js";
+
 import { build_instance } from "./build_instance.js";
+import type { PersistenceService } from "../../persistence/persistence.service.js";
 
 export const create_instance = (() => {
   const split_properties = async (
@@ -73,19 +73,17 @@ export const create_instance = (() => {
   return {
     self: async (
       data: InstanceData,
-      assetService: AssetService,
-      definitionService: DefinitionService,
-      instanceService: InstanceService,
+      a_service: AssetService,
+      d_service: DefinitionService,
+      p_service: PersistenceService,
     ): Promise<Instance> => {
-
-      
-      const asset_id = await assetService.find_id_by_tag(data.type);
+      const asset_id = await a_service.find_id_by_tag(data.type);
 
       if (!asset_id) {
         throw new Error(`Asset not found: ${data.type}`);
       }
 
-      const asset = await assetService.get_by_id(asset_id);
+      const asset = await a_service.get_by_id(asset_id);
 
       if (!asset) {
         throw new Error(`Asset not found: ${data.type}`);
@@ -95,7 +93,7 @@ export const create_instance = (() => {
 
       const { normal, relations } = await split_properties(
         data.properties,
-        definitionService,
+        d_service,
       );
 
       const index = await update_instance_counter(asset.id);
@@ -118,9 +116,9 @@ export const create_instance = (() => {
       const values = properties.map((_, index) => `$${index + 3}`).join(", ");
 
       const query = `
-    INSERT INTO "${asset_id}" (${columns})
-    VALUES ($1, $2${values ? `, ${values}` : ""})
-  `;
+        INSERT INTO "${asset_id}" (${columns})
+        VALUES ($1, $2${values ? `, ${values}` : ""})
+      `;
 
       await client.query(query, [
         instanceToCheck.id,
@@ -128,8 +126,8 @@ export const create_instance = (() => {
         ...properties.map((property) => normal[property]),
       ]);
 
-      await check_instance.required(asset, instanceToCheck);
-      await check_instance.identifiable(asset, instanceToCheck);
+      await check_instance.required(asset, instanceToCheck, p_service);
+      await check_instance.identifiable(asset, instanceToCheck, p_service);
 
       for (const [definitionId, value] of Object.entries(relations)) {
         if (!Array.isArray(value)) {
@@ -139,24 +137,42 @@ export const create_instance = (() => {
         for (const reference of value) {
           const tag = reference as InstanceTag;
 
-          const targetInstanceId = await find_instance.id_by_tag(
+          const instance_b_id = await find_instance.id_by_tag(
             tag,
-            assetService,
+            a_service,
           );
 
-          if (!targetInstanceId) {
+          if (!instance_b_id) {
             throw new Error(`Instance not found: ${tag.assetTag}:${tag.index}`);
           }
 
-          const targetAssetId = instanceService.find_asset_id(targetInstanceId);
+          const asset_b_id = find_instance.asset_id(instance_b_id);
 
-          await insert_instance.relation(
-            id,
-            targetInstanceId,
-            asset_id,
-            targetAssetId,
+          const [
+            first_instance_id,
+            second_instance_id,
+            first_asset_id,
+            second_asset_id,
+          ] =
+            id < instance_b_id
+              ? [id, instance_b_id, asset_id, asset_b_id]
+              : [instance_b_id, id, asset_b_id, asset_id];
+
+          const [a_exists, b_exists] = await Promise.all([
+            check_instance.existence(first_instance_id, first_asset_id),
+            check_instance.existence(second_instance_id, second_asset_id),
+          ]);
+
+          if (!a_exists || !b_exists) {
+            throw new Error("Instance not found");
+          }
+
+          await p_service.persist_instance_relations(
             definitionId as DefinitionId,
-            instanceService,
+            first_asset_id,
+            second_asset_id,
+            first_instance_id,
+            second_instance_id,
           );
         }
       }
@@ -167,48 +183,7 @@ export const create_instance = (() => {
         data.type,
         index,
         normal,
-        definitionService,
-      );
-    },
-
-    relation: async (
-      a: InstanceTag,
-      b: InstanceTag,
-      def_id: DefinitionId,
-      assetService: AssetService,
-      instanceService: InstanceService,
-    ): Promise<void> => {
-      const [instanceA, instanceB, assetA, assetB] = await Promise.all([
-        find_instance.id_by_tag(a, assetService),
-        find_instance.id_by_tag(b, assetService),
-        await assetService.find_id_by_tag(a.assetTag),
-        await assetService.find_id_by_tag(b.assetTag),
-      ]);
-
-      if (!assetA || !assetB) {
-        throw new Error("Asset not found");
-      }
-
-      if (!instanceA || !instanceB) {
-        throw new Error("Instance not found");
-      }
-
-      await insert_instance.relation(
-        instanceA,
-        instanceB,
-        assetA,
-        assetB,
-        def_id,
-        instanceService,
-      );
-    },
-
-    issue: async (id: InstanceId, code: number, field: string) => {
-      await client.query(
-        `INSERT INTO healthy_issues (instance_id, issue_code, field)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (instance_id, issue_code, field) DO NOTHING`,
-        [id, code, field],
+        d_service,
       );
     },
   };

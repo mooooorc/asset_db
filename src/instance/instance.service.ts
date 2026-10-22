@@ -16,6 +16,7 @@ import { find_asset } from "../asset/operations/find_asset.js";
 import { create_instance } from "./operations/create_instance.js";
 import { DefinitionService } from "../definition/definition.service.js";
 import { AssetService } from "../asset/asset.service.js";
+import { PersistenceService } from "../persistence/persistence.service.js";
 
 @Injectable()
 export class InstanceService {
@@ -25,6 +26,9 @@ export class InstanceService {
     private readonly definitionService: DefinitionService,
      @Inject(AssetService)
     private readonly assetService: AssetService,
+
+    @Inject(PersistenceService)
+    private readonly persistenceService: PersistenceService
   ) {}
 
   async get(tag: InstanceTag) {
@@ -78,7 +82,7 @@ export class InstanceService {
       data,
       this.assetService,
       this.definitionService,
-      this,
+      this.persistenceService
     );
   }
 

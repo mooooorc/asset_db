@@ -58,20 +58,14 @@ export class PackageService {
 
   async prepare(tag: PackageTag) {
     const id = await this.get_id(tag);
-    return build_package.public(id, this.instanceService, this);
+    return build_package.public(id, this.instanceService);
   }
 
-  /*
-  async insert(pack: ConditionedPackage) {
-    await insert_package.self(pack);
-    await insert_package.discussion_counter(pack.id);
-  }
-    */
 
   async getContent(tag: PackageTag) {
     const id = await this.get_id(tag);
 
-    return get_package.content(id, this.instanceService, this);
+    return get_package.content(id, this.instanceService);
   }
 
   async addInstance(tag: PackageTag, instance_tag: InstanceTag) {
@@ -129,7 +123,7 @@ export class PackageService {
   async getInstances(tag: PackageTag) {
     const id = await this.get_id(tag);
 
-    return get_package.instances(id, this.instanceService, this);
+    return get_package.instances(id, this.instanceService);
   }
 
   selectInstancesByCondition(
